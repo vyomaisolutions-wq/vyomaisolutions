@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  --brand-primary: #00f0ff;
+  --brand-secondary: #0284c7;
+  --brand-accent: #38bdf8;
+  --brand-dark: #050b14;
+  --brand-dark-surface: #0a1220;
+  --brand-dark-card: #0d1726;
+  --brand-dark-elevated: #111e33;
+  --brand-border: rgba(56, 189, 248, 0.15);
+  --brand-border-glow: rgba(0, 240, 255, 0.4);
+  --brand-glow: rgba(0, 240, 255, 0.2);
+  --background: #050b14;
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+}
+
+@theme {
+  --color-brand-primary: #00f0ff;
+  --color-brand-secondary: #0284c7;
+  --color-brand-accent: #38bdf8;
+  --color-brand-dark: #050b14;
+  --color-brand-dark-surface: #0a1220;
+  --color-brand-dark-card: #0d1726;
+  --color-brand-dark-elevated: #111e33;
+  --color-brand-border: rgba(56, 189, 248, 0.15);
+  --color-brand-glow: rgba(0, 240, 255, 0.25);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--brand-dark);
+  color: var(--foreground);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050b14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+/* Utility animations and glassmorphism */
+.glass-panel {
+  background: rgba(10, 18, 32, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+}
+
+.glass-panel-elevated {
+  background: rgba(13, 23, 38, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+}
+
+.glow-cyan-sm {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+}
+
+.glow-cyan-lg {
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.35);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #00f0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #38bdf8 0%, #00f0ff 60%, #0284c7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(5, 11, 20, 0) 70%);
+}
+
+.grid-bg {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+}
