@@ -18,23 +18,23 @@ export const LeadershipVisionSection: React.FC = () => {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          {/* ================= LEFT COLUMN: Futuristic Cyber Portrait Frame ================= */}
+          {/* ================= LEFT COLUMN: Futuristic AI Quantum Architecture Core ================= */}
           <div className="lg:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-[420px] group">
+            <div className="relative w-full max-w-[440px] group">
               {/* Outer Radiant Glow Aura */}
               <div className="absolute -inset-1 rounded-[32px] bg-gradient-to-tr from-cyan-400/40 via-sky-500/20 to-blue-600/40 blur-xl opacity-75 group-hover:opacity-100 group-hover:blur-2xl transition-all duration-700 pointer-events-none" />
 
               {/* Multi-layered Glass Frame */}
               <div className="relative rounded-[28px] p-1.5 sm:p-2 bg-gradient-to-br from-cyan-400/50 via-slate-900/80 to-blue-600/50 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_35px_rgba(0,240,255,0.18)] transition-all duration-500 overflow-hidden">
-                <div className="relative h-[400px] sm:h-[480px] w-full rounded-[22px] overflow-hidden bg-slate-950">
-                  {/* Executive Portrait Image */}
+                <div className="relative h-[420px] sm:h-[500px] w-full rounded-[22px] overflow-hidden bg-slate-950 flex flex-col justify-between p-4 sm:p-5">
+                  {/* Non-Human AI Neural Core Background Asset */}
                   <Image
-                    src="/images/leadership-portrait.jpg"
-                    alt="VyomAI Executive Leadership"
+                    src="/images/ai-core-matrix.jpg"
+                    alt="VyomAI Autonomous Neural Architecture Core"
                     fill
                     priority
-                    sizes="(max-width: 1024px) 100vw, 420px"
-                    className="object-cover object-center scale-100 group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 1024px) 100vw, 440px"
+                    className="object-cover object-center scale-100 group-hover:scale-105 transition-transform duration-700 opacity-90"
                   />
 
                   {/* High-Tech HUD Cyber Corner Brackets */}
@@ -43,11 +43,64 @@ export const LeadershipVisionSection: React.FC = () => {
                   <div className="absolute bottom-3.5 left-3.5 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl z-20 pointer-events-none shadow-[0_0_10px_rgba(0,240,255,0.6)]" />
                   <div className="absolute bottom-3.5 right-3.5 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br z-20 pointer-events-none shadow-[0_0_10px_rgba(0,240,255,0.6)]" />
 
-                  {/* Vignette Gradients for Contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none" />
+                  {/* Gradient overlays for readability and cyber depth */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60 pointer-events-none z-10" />
 
-                  {/* Floating Holographic Executive Credential Dock */}
-                  <div className="absolute bottom-3.5 inset-x-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-cyan-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(0,240,255,0.15)] flex items-center justify-between gap-3 z-20">
+                  {/* Top HUD Telemetry Banner */}
+                  <div className="relative z-20 flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-950/80 backdrop-blur-md border border-cyan-500/30">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="text-[10px] font-mono tracking-wider text-cyan-300 font-bold uppercase truncate">
+                        Autonomous Core v4.2
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0 font-semibold">
+                      ACTIVE
+                    </span>
+                  </div>
+
+                  {/* Center Floating Diagnostics Hologram Pod */}
+                  <div className="relative z-20 my-auto p-3.5 sm:p-4 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-cyan-400/30 shadow-[0_10px_25px_rgba(0,0,0,0.8),0_0_20px_rgba(0,240,255,0.15)] group-hover:border-cyan-400/60 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-cyan-950 border border-cyan-400/40 text-cyan-400 flex items-center justify-center shrink-0">
+                          <Cpu className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-white tracking-wider uppercase">
+                          Neural Fabric Matrix
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-cyan-400 font-semibold">
+                        99.98% SLA
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-[11px] font-mono">
+                      <div className="flex justify-between text-slate-300">
+                        <span className="text-slate-400">Inference Architecture:</span>
+                        <span className="text-cyan-300 font-bold">Hybrid RAG / LLM</span>
+                      </div>
+                      <div className="flex justify-between text-slate-300">
+                        <span className="text-slate-400">Processing Latency:</span>
+                        <span className="text-emerald-400 font-bold">&lt; 15ms Edge Sync</span>
+                      </div>
+                      <div className="flex justify-between text-slate-300">
+                        <span className="text-slate-400">Model Quantization:</span>
+                        <span className="text-sky-300 font-bold">FP8 / INT4 Optimized</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Track */}
+                    <div className="mt-3 w-full h-1.5 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                      <div className="h-full bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 w-[94%] rounded-full animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Bottom Holographic Architectural Credential Dock */}
+                  <div className="relative z-20 p-3 sm:p-3.5 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-cyan-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(0,240,255,0.15)] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center text-slate-950 font-bold shrink-0 shadow-md shadow-cyan-400/30">
                         <ShieldCheck className="w-4 h-4 text-slate-950" />
@@ -58,13 +111,13 @@ export const LeadershipVisionSection: React.FC = () => {
                         </div>
                         <div className="text-[10px] font-mono text-cyan-400 tracking-wider flex items-center gap-1.5 truncate">
                           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-                          <span>Executive Office</span>
+                          <span>AI Architecture Division</span>
                         </div>
                       </div>
                     </div>
                     <div className="shrink-0">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-cyan-950/90 border border-cyan-500/40 text-[10px] font-mono text-cyan-300 font-semibold uppercase tracking-wider">
-                        Verified
+                        Enterprise Grade
                       </span>
                     </div>
                   </div>

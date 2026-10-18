@@ -280,5 +280,40 @@
       "Python",
       "Temporal"
     ]
+  },
+  {
+    "title": "Digital Marketing & AI Growth Strategy",
+    "slug": "digital-marketing",
+    "iconName": "TrendingUp",
+    "shortDesc": "Data-backed SEO engineering, programmatic performance marketing, and predictive conversion optimization.",
+    "fullDesc": "We merge cutting-edge search engine intelligence, programmatic ad bidding algorithms, and autonomous content optimization to drive predictable, high-value enterprise acquisition. Our growth engineers build custom tracking architectures and conversion funnels that maximize lifetime client value.",
+    "image": "/images/hero-wave.jpg",
+    "features": [
+      "Algorithmic SEO & Semantic Search Dominance",
+      "Programmatic Multi-Channel Performance Ads (PPC)",
+      "Predictive Conversion Rate Optimization (CRO)",
+      "Automated Marketing Analytics & Attribution Pipelines"
+    ],
+    "technologies": [
+      "Google Analytics 4",
+      "Semrush",
+      "Meta Ads API",
+      "Google Ads API",
+      "BigQuery",
+      "HubSpot"
+    ],
+    "metrics": "4.2x Average Return on Ad Spend (ROAS) & Organic Traffic Lift",
+    "active": true,
+    "metaTitle": "Digital Marketing & AI-Driven Growth Strategy | VyomAI",
+    "metaDescription": "Enterprise SEO engineering, programmatic PPC campaigns, conversion rate optimization, and automated attribution pipelines designed for hyper-growth companies.",
+    "metaImage": "/images/hero-wave.jpg",
+    "keywords": [
+      "Digital Marketing",
+      "AI Marketing",
+      "SEO Strategy",
+      "Programmatic PPC",
+      "Conversion Rate Optimization",
+      "Growth Engineering"
+    ]
   }
 ]

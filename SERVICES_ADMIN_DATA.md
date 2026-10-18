@@ -19,6 +19,7 @@ The raw JSON dataset is also available in:
 | 6 | Cloud Computing & DevOps | `cloud-devops` | `CloudCog` | 45% Cloud Infrastructure Cost Reduction |
 | 7 | UI/UX Design & Design Systems | `ui-ux` | `Palette` | 3.2x User Engagement & Retention Lift |
 | 8 | Business Process Automation | `automation` | `Cpu` | 85% Reduction in Manual Processing Hours |
+| 9 | Digital Marketing & AI Growth Strategy | `digital-marketing` | `TrendingUp` | 4.2x Average Return on Ad Spend (ROAS) & Organic Traffic Lift |
 
 ---
 
@@ -467,3 +468,60 @@ The raw JSON dataset is also available in:
   ```text
   Business Process Automation, RPA, Intelligent Automation, Document Processing, Workflow Automation, Python, Temporal
   ```
+
+---
+
+## 9. Digital Marketing & AI Growth Strategy
+
+- **Title:**
+  ```text
+  Digital Marketing & AI Growth Strategy
+  ```
+- **Slug:**
+  ```text
+  digital-marketing
+  ```
+- **Icon Name:**
+  ```text
+  TrendingUp
+  ```
+- **Image URL (Optional):**
+  ```text
+  /images/hero-wave.jpg
+  ```
+- **Short Description:**
+  ```text
+  Data-backed SEO engineering, programmatic performance marketing, and predictive conversion optimization.
+  ```
+- **Full Description:**
+  ```text
+  We merge cutting-edge search engine intelligence, programmatic ad bidding algorithms, and autonomous content optimization to drive predictable, high-value enterprise acquisition. Our growth engineers build custom tracking architectures and conversion funnels that maximize lifetime client value.
+  ```
+- **Key Performance Metric / SLA:**
+  ```text
+  4.2x Average Return on Ad Spend (ROAS) & Organic Traffic Lift
+  ```
+- **Technologies (comma-separated):**
+  ```text
+  Google Analytics 4, Semrush, Meta Ads API, Google Ads API, BigQuery, HubSpot
+  ```
+- **Core Features (one per line):**
+  ```text
+  Algorithmic SEO & Semantic Search Dominance
+  Programmatic Multi-Channel Performance Ads (PPC)
+  Predictive Conversion Rate Optimization (CRO)
+  Automated Marketing Analytics & Attribution Pipelines
+  ```
+- **SEO Meta Title:**
+  ```text
+  Digital Marketing & AI-Driven Growth Strategy | VyomAI
+  ```
+- **SEO Meta Description:**
+  ```text
+  Enterprise SEO engineering, programmatic PPC campaigns, conversion rate optimization, and automated attribution pipelines designed for hyper-growth companies.
+  ```
+- **SEO Keywords (comma-separated):**
+  ```text
+  Digital Marketing, AI Marketing, SEO Strategy, Programmatic PPC, Conversion Rate Optimization, Growth Engineering
+  ```
+

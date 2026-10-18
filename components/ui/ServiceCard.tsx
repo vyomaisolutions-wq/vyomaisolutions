@@ -12,6 +12,7 @@ import {
   CloudCog,
   Palette,
   Cpu,
+  TrendingUp,
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
@@ -42,6 +43,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
         return <Palette {...props} />;
       case "Cpu":
         return <Cpu {...props} />;
+      case "TrendingUp":
+        return <TrendingUp {...props} />;
       default:
         return <Brain {...props} />;
     }

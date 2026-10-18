@@ -12,6 +12,7 @@ import {
   CloudCog,
   Palette,
   Cpu,
+  TrendingUp,
   ArrowRight,
 } from "lucide-react";
 import { servicesDropdownItems, ServiceDropdownItem } from "@/data/navigation";
@@ -110,6 +111,8 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
         return <Palette {...props} />;
       case "Cpu":
         return <Cpu {...props} />;
+      case "TrendingUp":
+        return <TrendingUp {...props} />;
       default:
         return <Brain {...props} />;
     }

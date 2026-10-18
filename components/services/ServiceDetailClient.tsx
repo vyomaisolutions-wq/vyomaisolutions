@@ -14,6 +14,7 @@ import {
   CloudCog,
   Palette,
   Cpu,
+  TrendingUp,
   CheckCircle2,
   ArrowRight,
   Shield,
@@ -67,6 +68,8 @@ export const ServiceDetailClient: React.FC<ServiceDetailClientProps> = ({
         return <Palette {...props} />;
       case "Cpu":
         return <Cpu {...props} />;
+      case "TrendingUp":
+        return <TrendingUp {...props} />;
       default:
         return <Brain {...props} />;
     }
