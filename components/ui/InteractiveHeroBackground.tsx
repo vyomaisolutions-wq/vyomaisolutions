@@ -181,7 +181,7 @@ export const InteractiveHeroBackground: React.FC = () => {
         className="absolute inset-0 -top-8 -bottom-8 -left-8 -right-8"
       >
         <Image
-          src="/api/hero-bg"
+          src="/images/hero-wave.jpg"
           alt="Cosmic AI Particle Wave Terrain"
           fill
           priority

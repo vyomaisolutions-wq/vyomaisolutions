@@ -77,7 +77,7 @@ export const BlogPageClient: React.FC = () => {
   };
 
   return (
-    <div className="pt-20 pb-16 overflow-hidden">
+    <div className="pt-16 sm:pt-20 pb-12 sm:pb-16 overflow-hidden w-full min-w-0">
       {/* Hero Header with Reduced Padding & Cosmic Neural Background Image */}
       <section className="relative py-12 sm:py-16 text-center overflow-hidden border-b border-slate-900/80">
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -95,36 +95,36 @@ export const BlogPageClient: React.FC = () => {
           <div className="absolute inset-0 grid-bg opacity-20" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-5">
-            <BookOpen className="w-4 h-4 text-cyan-400" />
-            <span>Research &amp; Engineering Publications</span>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 min-w-0">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-5 max-w-full">
+            <BookOpen className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="truncate">Research &amp; Engineering Publications</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 sm:mb-5">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 sm:mb-5 break-words">
             Architectural Insights &amp;{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-500">
               AI Papers
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto">
             Practical engineering blueprints, mathematical analyses, and field notes from building high-scale AI systems.
           </p>
         </div>
       </section>
 
       {/* Search & Filter Bar */}
-      <section className="py-6 border-y border-slate-900 bg-slate-950/60">
+      <section className="py-4 sm:py-6 border-y border-slate-900 bg-slate-950/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer min-tap-target shrink-0 ${
                   selectedCategory === cat
-                    ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300"
+                    ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-semibold"
                     : "bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white"
                 }`}
               >
@@ -140,46 +140,46 @@ export const BlogPageClient: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search articles or topics..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
             />
           </div>
         </div>
       </section>
 
       {/* Articles Grid */}
-      <section id="articles-section" className="py-16 scroll-mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="articles-section" className="py-12 sm:py-16 scroll-mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
           {filteredPosts.length === 0 ? (
-            <div className="text-center py-20 text-slate-400">
+            <div className="text-center py-16 sm:py-20 text-slate-400">
               <p>No articles published yet. Publications will appear here once added in the Admin Panel.</p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {paginatedPosts.map((post) => (
                   <Link
                     key={post._id || post.slug || post.id}
                     href={`/blog/${post.slug}`}
-                    className="group flex flex-col justify-between rounded-2xl bg-slate-900/80 hover:bg-transparent border border-slate-800 hover:border-cyan-400/60 shadow-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/10 backdrop-blur-md cursor-pointer"
+                    className="group flex flex-col justify-between rounded-2xl bg-slate-900/80 hover:bg-transparent border border-slate-800 hover:border-cyan-400/60 shadow-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/10 backdrop-blur-md cursor-pointer min-w-0"
                   >
-                    <div className="relative h-52 w-full overflow-hidden border-b border-slate-800 p-5 flex flex-col justify-between">
+                    <div className="relative h-44 sm:h-52 w-full overflow-hidden border-b border-slate-800 p-4 sm:p-5 flex flex-col justify-between">
                       <Image
                         src={post.image || "/images/blog/generative-ai-arch.jpg"}
                         alt={post.title}
                         fill
                         unoptimized
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
 
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/60 pointer-events-none" />
                       <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-2xl group-hover:bg-cyan-400/25 transition-all duration-500 pointer-events-none" />
 
-                      <div className="flex items-center justify-between relative z-10">
-                        <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-slate-950/85 border border-cyan-400/40 text-cyan-300 backdrop-blur-md shadow-md">
+                      <div className="flex items-center justify-between gap-2 relative z-10">
+                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-950/85 border border-cyan-400/40 text-cyan-300 backdrop-blur-md shadow-md truncate">
                           {post.category}
                         </span>
-                        <span className="text-xs font-mono text-slate-200 bg-slate-950/75 px-2.5 py-1 rounded-full border border-white/15 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                        <span className="text-xs font-mono text-slate-200 bg-slate-950/75 px-2.5 py-1 rounded-full border border-white/15 backdrop-blur-md flex items-center gap-1.5 shadow-sm shrink-0">
                           <Clock className="w-3.5 h-3.5 text-cyan-400" /> {post.readTime}
                         </span>
                       </div>
@@ -192,29 +192,29 @@ export const BlogPageClient: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between min-w-0">
                       <div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-3 font-mono">
-                          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-2.5 font-mono">
+                          <Calendar className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                           <span>{post.publishedDate}</span>
                         </div>
 
-                        <h2 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors leading-snug mb-3">
+                        <h2 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors leading-snug mb-2.5 break-words">
                           {post.title}
                         </h2>
 
-                        <p className="text-sm text-slate-400 leading-relaxed mb-6 line-clamp-2 text-justify">
+                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-5 line-clamp-2">
                           {post.excerpt}
                         </p>
                       </div>
 
-                      <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs group-hover:shadow-lg group-hover:shadow-cyan-500/30 transition-all">
+                      <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-xs group-hover:shadow-lg group-hover:shadow-cyan-500/30 transition-all min-tap-target">
                           <span>Read Full Article</span>
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </div>
 
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-xs font-mono text-slate-400 truncate max-w-[140px]">
                           {post.author?.name || "VyomAI Lead"}
                         </span>
                       </div>
@@ -238,14 +238,14 @@ export const BlogPageClient: React.FC = () => {
       </section>
 
       {/* Newsletter Box */}
-      <section className="py-20 bg-slate-950/80 border-t border-slate-900">
+      <section className="py-16 sm:py-20 bg-slate-950/80 border-t border-slate-900">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="p-8 sm:p-12 rounded-3xl bg-slate-900 border border-cyan-500/20 shadow-2xl">
-            <Sparkles className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-pulse" />
-            <h3 className="text-2xl font-bold text-white mb-2">
+          <div className="p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-slate-900 border border-cyan-500/20 shadow-2xl min-w-0">
+            <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-cyan-400 mx-auto mb-3 sm:mb-4 animate-pulse" />
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 break-words">
               Stay Ahead of AI Breakthroughs
             </h3>
-            <p className="text-sm text-slate-300 max-w-md mx-auto mb-6">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
               Subscribe to get our quarterly engineering whitepapers, benchmark data, and model architecture deep-dives.
             </p>
 
@@ -256,11 +256,12 @@ export const BlogPageClient: React.FC = () => {
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 placeholder="Enter your corporate email"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 pr-14"
+                className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 pr-14 min-h-[48px]"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors cursor-pointer flex items-center justify-center"
+                className="absolute right-1.5 top-1.5 bottom-1.5 w-11 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors cursor-pointer flex items-center justify-center min-tap-target shrink-0"
+                aria-label="Subscribe to newsletter"
               >
                 {isSubscribed ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
               </button>

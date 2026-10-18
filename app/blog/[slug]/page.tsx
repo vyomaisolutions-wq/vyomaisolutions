@@ -23,8 +23,10 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const instant = false;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  "use cache";
   const { slug } = await params;
   const { data: post } = await getBlogBySlugFromDb(slug);
 
@@ -104,24 +106,24 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
           </div>
 
           {/* Article Title */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-5">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-5 break-words">
             {post.title}
           </h1>
 
           {/* Author Block */}
           <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md shadow-cyan-500/20">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md shadow-cyan-500/20 shrink-0">
                 {post.author.name
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </div>
-              <div>
-                <span className="text-sm font-bold text-white block">
+              <div className="min-w-0">
+                <span className="text-sm font-bold text-white block truncate">
                   {post.author.name}
                 </span>
-                <span className="text-xs text-cyan-400 font-mono block">
+                <span className="text-xs text-cyan-400 font-mono block truncate">
                   {post.author.role}
                 </span>
               </div>
@@ -137,12 +139,12 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
       </section>
 
       {/* Main Two-Column Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 min-w-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* Left Column: Main Article Body */}
-          <article className="lg:col-span-8 order-1 space-y-8">
+          <article className="lg:col-span-8 order-1 space-y-6 sm:space-y-8 min-w-0">
             {/* Featured Image */}
-            <div className="relative h-72 sm:h-96 w-full rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+            <div className="relative h-56 sm:h-80 md:h-96 w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
               <Image
                 src={post.image}
                 alt={post.title}
@@ -156,21 +158,21 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
             </div>
 
             {/* Executive Summary Callout */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cyan-950/30 via-slate-900/60 to-blue-950/30 border-l-4 border-cyan-400 border-y border-r border-slate-800/80 shadow-xl">
+            <div className="p-5 sm:p-8 rounded-2xl bg-gradient-to-r from-cyan-950/30 via-slate-900/60 to-blue-950/30 border-l-4 border-cyan-400 border-y border-r border-slate-800/80 shadow-xl min-w-0">
               <h2 className="text-xs font-mono text-cyan-400 tracking-wider uppercase mb-2 flex items-center gap-2 font-bold">
-                <Sparkles className="w-4 h-4" /> Executive Abstract
+                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" /> Executive Abstract
               </h2>
-              <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-medium">
+              <p className="text-sm sm:text-base md:text-lg text-slate-200 leading-relaxed font-medium">
                 {post.excerpt}
               </p>
             </div>
 
             {/* Detailed Sections or Full Description */}
-            <div className="space-y-12 text-slate-300">
+            <div className="space-y-8 sm:space-y-12 text-slate-300 min-w-0">
               {post.description && (
                 <div className="space-y-4">
                   {post.description.split("\n\n").map((para, pIdx) => (
-                    <p key={pIdx} className="text-base sm:text-lg text-slate-300 leading-relaxed text-justify">
+                    <p key={pIdx} className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed">
                       {para}
                     </p>
                   ))}
@@ -178,36 +180,36 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               )}
 
               {post.sections?.map((section, idx) => (
-                <section key={idx} className="space-y-4">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight border-b border-slate-800/80 pb-3">
+                <section key={idx} className="space-y-4 min-w-0">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight border-b border-slate-800/80 pb-3 break-words">
                     {section.heading}
                   </h2>
 
                   {section.paragraphs.map((p, pIdx) => (
                     <p
                       key={pIdx}
-                      className="text-base sm:text-lg text-slate-300 leading-relaxed text-justify"
+                      className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed"
                     >
                       {p}
                     </p>
                   ))}
 
                   {section.callout && (
-                    <div className="p-5 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-cyan-200 font-mono text-sm leading-relaxed my-4 shadow-md">
+                    <div className="p-4 sm:p-5 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-cyan-200 font-mono text-xs sm:text-sm leading-relaxed my-4 shadow-md break-words">
                       &ldquo;{section.callout}&rdquo;
                     </div>
                   )}
 
                   {section.keyPoints && section.keyPoints.length > 0 && (
-                    <div className="mt-4 p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-3">
+                    <div className="mt-4 p-5 sm:p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-3 min-w-0">
                       <h3 className="text-xs font-mono text-cyan-400 uppercase tracking-wider font-semibold">
                         Key Architectural Takeaways:
                       </h3>
                       <div className="space-y-2">
                         {section.keyPoints.map((point, kIdx) => (
-                          <div key={kIdx} className="flex items-start gap-2.5">
-                            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-1" />
-                            <span className="text-sm text-slate-300 leading-relaxed">
+                          <div key={kIdx} className="flex items-start gap-2.5 min-w-0">
+                            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                            <span className="text-xs sm:text-sm text-slate-300 leading-relaxed break-words">
                               {point}
                             </span>
                           </div>
@@ -220,12 +222,12 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
 
               {/* Conclusion */}
               {post.conclusion && (
-                <div className="p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-cyan-500/20 shadow-xl space-y-3">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-cyan-400" />
+                <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-cyan-500/20 shadow-xl space-y-3 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
                     Strategic Synthesis
                   </h2>
-                  <p className="text-base text-slate-300 leading-relaxed text-justify">
+                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
                     {post.conclusion}
                   </p>
                 </div>
@@ -248,24 +250,24 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
             </div>
 
             {/* Author Bio Card */}
-            <div className="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-2xl text-slate-950 shadow-lg shadow-cyan-500/20 shrink-0">
+            <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 min-w-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-xl sm:text-2xl text-slate-950 shadow-lg shadow-cyan-500/20 shrink-0">
                 {post.author.name
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </div>
-              <div className="text-center sm:text-left flex-1">
+              <div className="text-center sm:text-left flex-1 min-w-0">
                 <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider block mb-1">
                   About the Author
                 </span>
-                <h3 className="text-xl font-bold text-white mb-1">{post.author.name}</h3>
-                <p className="text-xs text-slate-400 font-mono mb-2">{post.author.role}</p>
-                <p className="text-sm text-slate-300 leading-relaxed">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-1 truncate">{post.author.name}</h3>
+                <p className="text-xs text-slate-400 font-mono mb-2 truncate">{post.author.role}</p>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   Spearheading advanced cognitive architecture and distributed inference research at VyomAI Technologies.
                 </p>
               </div>
-              <Button href="/contact" variant="outline" size="sm" className="shrink-0">
+              <Button href="/contact" variant="outline" size="sm" className="w-full sm:w-auto shrink-0 min-h-[44px]">
                 Consult Author
               </Button>
             </div>

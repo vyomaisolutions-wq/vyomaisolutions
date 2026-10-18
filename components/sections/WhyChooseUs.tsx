@@ -36,7 +36,7 @@ export const WhyChooseUs: React.FC = () => {
   };
 
   return (
-    <section id="why-us" className="relative py-24 sm:py-32 bg-slate-950/80 overflow-hidden scroll-mt-20">
+    <section id="why-us" className="relative py-16 sm:py-24 lg:py-32 bg-slate-950/80 overflow-hidden scroll-mt-20">
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[160px] pointer-events-none" />
 
@@ -53,15 +53,15 @@ export const WhyChooseUs: React.FC = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
         >
           {whyChooseUsItems.map((item, idx) => (
             <motion.div
               key={item.title}
               variants={fadeIn("up", idx * 0.08)}
-              whileHover={{ y: -8, scale: 1.02 }}
+              whileHover={{ y: -6, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 350, damping: 22 }}
-              className="group relative p-8 rounded-3xl bg-gradient-to-br from-white/[0.07] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
+              className="group relative p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.07] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer min-w-0"
             >
               {/* Subtle top hover highlight */}
               <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

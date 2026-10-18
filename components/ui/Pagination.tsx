@@ -45,22 +45,22 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-4 pt-10 border-t border-slate-800/80 ${className}`}
+      className={`flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-8 sm:pt-10 border-t border-slate-800/80 w-full min-w-0 ${className}`}
     >
       {/* Items Count Summary */}
-      <p className="text-xs font-mono text-slate-400">
+      <p className="text-xs font-mono text-slate-400 text-center sm:text-left">
         Showing <span className="text-cyan-400 font-semibold">{startItem}</span> –{" "}
         <span className="text-cyan-400 font-semibold">{endItem}</span> of{" "}
         <span className="text-white font-semibold">{totalItems}</span> {itemLabel}
       </p>
 
       {/* Page Numbers and Prev/Next Navigation */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           aria-label="Previous Page"
-          className="p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-1 bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer backdrop-blur-md"
+          className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl text-xs font-mono font-medium flex items-center gap-1 bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer backdrop-blur-md shrink-0"
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Prev</span>
@@ -69,7 +69,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         {getPageNumbers().map((p, idx) => {
           if (p === "...") {
             return (
-              <span key={`dots-${idx}`} className="px-2 text-xs font-mono text-slate-500 select-none">
+              <span key={`dots-${idx}`} className="px-1 sm:px-2 text-xs font-mono text-slate-500 select-none">
                 …
               </span>
             );
@@ -82,7 +82,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             <button
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
-              className={`w-9 h-9 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-center backdrop-blur-md ${
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-center backdrop-blur-md shrink-0 ${
                 isActive
                   ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-md shadow-cyan-500/25 scale-105"
                   : "bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40"
@@ -97,7 +97,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           aria-label="Next Page"
-          className="p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-mono font-medium flex items-center gap-1 bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer backdrop-blur-md"
+          className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl text-xs font-mono font-medium flex items-center gap-1 bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer backdrop-blur-md shrink-0"
         >
           <span className="hidden sm:inline">Next</span>
           <ChevronRight className="w-4 h-4" />

@@ -1111,34 +1111,34 @@ export default function AdminDashboardPage() {
       </header>
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col md:flex-row gap-6 md:gap-8 min-w-0">
         {/* Left Side Navigation Panel */}
-        <aside className="w-full md:w-64 shrink-0 space-y-6">
-          <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 backdrop-blur-md space-y-1">
+        <aside className="w-full md:w-64 shrink-0 space-y-4 sm:space-y-6 min-w-0">
+          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 backdrop-blur-md flex md:flex-col overflow-x-auto no-scrollbar gap-1.5 sm:gap-1">
             <button
               onClick={() => { setActiveTab("overview"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target ${
                 activeTab === "overview"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+                <LayoutDashboard className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Overview Dashboard</span>
               </div>
             </button>
 
             <button
               onClick={() => { setActiveTab("blog"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "blog"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <FileText className="w-4 h-4 text-cyan-400" />
+                <FileText className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Blog Publications</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
@@ -1148,14 +1148,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab("portfolio"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "portfolio"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Briefcase className="w-4 h-4 text-cyan-400" />
+                <Briefcase className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Portfolio Showcases</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
@@ -1165,14 +1165,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab("services"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "services"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Layers className="w-4 h-4 text-cyan-400" />
+                <Layers className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Services Catalog</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
@@ -1182,14 +1182,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab("contact"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "contact"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Inbox className="w-4 h-4 text-cyan-400" />
+                <Inbox className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Contact Inquiries</span>
               </div>
               {counts.newLeads > 0 ? (
@@ -1205,14 +1205,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab("database"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "database"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Database className="w-4 h-4 text-cyan-400" />
+                <Database className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>MongoDB Settings</span>
               </div>
               <span
@@ -1224,14 +1224,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab("seo"); setSearchQuery(""); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "seo"
-                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
                   : "text-slate-400 hover:text-white hover:bg-slate-900"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Globe className="w-4 h-4 text-cyan-400" />
+                <Globe className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Page SEO Config</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800 text-cyan-400 font-bold">
@@ -1241,9 +1241,9 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Quick System Info Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 border border-slate-800 text-xs space-y-2.5">
+          <div className="hidden md:block p-4 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 border border-slate-800 text-xs space-y-2.5">
             <div className="flex items-center gap-2 text-cyan-400 font-mono font-semibold">
-              <Server className="w-3.5 h-3.5" />
+              <Server className="w-3.5 h-3.5 shrink-0" />
               <span>Environment Status</span>
             </div>
             <div className="space-y-1 text-[11px] text-slate-400 font-mono">

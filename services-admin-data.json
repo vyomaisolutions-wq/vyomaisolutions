@@ -1,0 +1,284 @@
+[
+  {
+    "title": "Artificial Intelligence & Machine Learning",
+    "slug": "ai-ml",
+    "iconName": "Brain",
+    "shortDesc": "Custom neural network architectures, predictive analytics, and computer vision models.",
+    "fullDesc": "We design and deploy proprietary machine learning pipelines that process complex multimodal data, detect anomalies, predict future trends, and deliver actionable intelligence to enterprise decision-makers.",
+    "image": "/images/about-visual.jpg",
+    "features": [
+      "Custom Neural Network Architecture",
+      "Predictive Analytics & Forecasting",
+      "Computer Vision & Pattern Recognition",
+      "Model Training, Validation & Quantization"
+    ],
+    "technologies": [
+      "PyTorch",
+      "TensorFlow",
+      "Scikit-Learn",
+      "ONNX",
+      "CUDA"
+    ],
+    "metrics": "99.4% Model Precision Across Production Pipelines",
+    "active": true,
+    "metaTitle": "Artificial Intelligence & Machine Learning Services | VyomAI",
+    "metaDescription": "Custom neural network architectures, deep learning models, predictive analytics, and computer vision engineered for high-throughput enterprise applications.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Artificial Intelligence",
+      "Machine Learning",
+      "Deep Learning",
+      "Neural Networks",
+      "Computer Vision",
+      "PyTorch",
+      "Enterprise AI"
+    ]
+  },
+  {
+    "title": "Generative AI & LLM Integration",
+    "slug": "gen-ai",
+    "iconName": "Sparkles",
+    "shortDesc": "Enterprise Retrieval-Augmented Generation (RAG), fine-tuned LLMs, and autonomous agents.",
+    "fullDesc": "Transform enterprise operations by deploying private, compliant generative AI systems. From custom agent swarms to domain-specific fine-tuned models, we build secure architectures that augment human capability.",
+    "image": "/images/ai-hero.jpg",
+    "features": [
+      "Domain-Specific LLM Fine-Tuning",
+      "Enterprise RAG & Hybrid Vector Search",
+      "Autonomous Multi-Agent Workflows",
+      "Strict Guardrails & Prompt Optimization"
+    ],
+    "technologies": [
+      "OpenAI API",
+      "LangChain",
+      "LlamaIndex",
+      "vLLM",
+      "Pinecone"
+    ],
+    "metrics": "10x Acceleration in Document & Knowledge Retrieval",
+    "active": true,
+    "metaTitle": "Generative AI & LLM Integration Services | VyomAI",
+    "metaDescription": "Private enterprise RAG systems, domain-fine-tuned large language models, and autonomous multi-agent swarms engineered with strict enterprise data guardrails.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Generative AI",
+      "Large Language Models",
+      "LLM Fine-Tuning",
+      "RAG",
+      "Autonomous Agents",
+      "LangChain",
+      "Vector Databases"
+    ]
+  },
+  {
+    "title": "Custom Software Development",
+    "slug": "custom-software",
+    "iconName": "Code2",
+    "shortDesc": "Mission-critical enterprise software engineered for fault tolerance, velocity, and scale.",
+    "fullDesc": "We architect and build tailored software solutions that solve non-trivial business challenges. Our systems are engineered using domain-driven design, clean architecture, and rigorous automated testing.",
+    "image": "/images/about-hero-bg.jpg",
+    "features": [
+      "Microservices & Event-Driven Systems",
+      "Enterprise API Gateways & Protocols",
+      "Legacy Core Modernization",
+      "High-Concurrency Transaction Engines"
+    ],
+    "technologies": [
+      "TypeScript",
+      "Go",
+      "Python",
+      "gRPC",
+      "Apache Kafka"
+    ],
+    "metrics": "99.999% Service Availability SLA",
+    "active": true,
+    "metaTitle": "Enterprise Custom Software Development | VyomAI",
+    "metaDescription": "Architecting mission-critical, high-concurrency microservices, custom distributed transaction engines, and legacy enterprise software modernizations.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Custom Software Development",
+      "Microservices Architecture",
+      "Event-Driven Systems",
+      "Distributed Backend",
+      "Go",
+      "TypeScript",
+      "Enterprise APIs"
+    ]
+  },
+  {
+    "title": "Web Application Development",
+    "slug": "web-dev",
+    "iconName": "Globe",
+    "shortDesc": "Blazing-fast, responsive web platforms built on modern Next.js and distributed edge runtimes.",
+    "fullDesc": "We create captivating digital web experiences combining top-tier performance, sub-second latency, and fluid interaction design. Every interface is optimized for conversion, SEO, and accessibility.",
+    "image": "/images/hero-wave.jpg",
+    "features": [
+      "Next.js App Router & Server Components",
+      "Real-Time Collaborative WebSockets",
+      "Progressive Web Apps (PWA)",
+      "Edge Caching & Dynamic SSR Optimization"
+    ],
+    "technologies": [
+      "Next.js",
+      "React 19",
+      "Tailwind CSS",
+      "GraphQL",
+      "WebSockets"
+    ],
+    "metrics": "Sub-100ms Global First Contentful Paint",
+    "active": true,
+    "metaTitle": "High-Performance Web Application Development | VyomAI",
+    "metaDescription": "Modern Next.js web application engineering with distributed edge caching, real-time collaboration websockets, and responsive design systems.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Web Application Development",
+      "Next.js",
+      "React",
+      "Edge Computing",
+      "Full-Stack Development",
+      "PWA",
+      "WebSockets"
+    ]
+  },
+  {
+    "title": "Mobile App Development",
+    "slug": "mobile-dev",
+    "iconName": "Smartphone",
+    "shortDesc": "Fluid native iOS and Android apps with offline synchronization and AI edge inference.",
+    "fullDesc": "From consumer-facing mobile products to secure workforce tools, we craft mobile experiences that feel instantaneous, natural, and rock-solid across all device form factors.",
+    "image": "/images/about-visual.jpg",
+    "features": [
+      "Cross-Platform Flutter & React Native",
+      "Native iOS (Swift) & Android (Kotlin)",
+      "On-Device Machine Learning (CoreML & TFLite)",
+      "Offline-First Data Sync Protocols"
+    ],
+    "technologies": [
+      "React Native",
+      "Flutter",
+      "Swift",
+      "Kotlin",
+      "SQLite"
+    ],
+    "metrics": "4.9★ Average App Store Customer Rating",
+    "active": true,
+    "metaTitle": "iOS & Android Mobile App Development | VyomAI",
+    "metaDescription": "Engineered native and cross-platform mobile apps for iOS and Android featuring edge on-device machine learning and offline-first data sync.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Mobile App Development",
+      "React Native",
+      "Flutter",
+      "iOS Swift",
+      "Android Kotlin",
+      "Edge AI",
+      "Mobile Engineering"
+    ]
+  },
+  {
+    "title": "Cloud Computing & DevOps",
+    "slug": "cloud-devops",
+    "iconName": "CloudCog",
+    "shortDesc": "Automated Kubernetes orchestration, multi-cloud resilience, and GitOps CI/CD pipelines.",
+    "fullDesc": "Accelerate your development lifecycle with zero-downtime deployment pipelines, infrastructure as code, automated autoscaling clusters, and rigorous enterprise cloud security frameworks.",
+    "image": "/images/about-hero-bg.jpg",
+    "features": [
+      "Kubernetes & Container Orchestration",
+      "Infrastructure as Code (Terraform)",
+      "Automated GitOps CI/CD Delivery",
+      "Cost Optimization & FinOps Governance"
+    ],
+    "technologies": [
+      "AWS",
+      "Google Cloud",
+      "Docker",
+      "Kubernetes",
+      "Terraform"
+    ],
+    "metrics": "45% Cloud Infrastructure Cost Reduction",
+    "active": true,
+    "metaTitle": "Cloud Architecture & DevOps Engineering | VyomAI",
+    "metaDescription": "Enterprise Kubernetes orchestration, automated GitOps CI/CD pipelines, multi-cloud disaster resilience, and cloud infrastructure cost optimization.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Cloud Computing",
+      "DevOps",
+      "Kubernetes",
+      "Docker",
+      "AWS",
+      "Google Cloud",
+      "Terraform",
+      "CI/CD",
+      "Infrastructure as Code"
+    ]
+  },
+  {
+    "title": "UI/UX Design & Design Systems",
+    "slug": "ui-ux",
+    "iconName": "Palette",
+    "shortDesc": "Human-centered digital interfaces, component libraries, and futuristic aesthetic systems.",
+    "fullDesc": "We bridge complex technological capabilities with intuitive, delightful human interfaces. Our design process combines cognitive psychology, user research, wireframing, and pixel-perfect design systems.",
+    "image": "/images/hero-wave.jpg",
+    "features": [
+      "End-to-End User Experience Research",
+      "High-Fidelity Interactive Prototypes",
+      "Multi-Brand Accessible Design Systems",
+      "Micro-Interaction & Motion Design"
+    ],
+    "technologies": [
+      "Figma",
+      "Design Tokens",
+      "Storybook",
+      "Tailwind CSS",
+      "Framer"
+    ],
+    "metrics": "3.2x User Engagement & Retention Lift",
+    "active": true,
+    "metaTitle": "UI/UX Design & Enterprise Design Systems | VyomAI",
+    "metaDescription": "Human-centered UI/UX design, interactive prototyping, futuristic design systems, and conversion-focused interaction design for web and mobile products.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "UI UX Design",
+      "User Experience",
+      "Figma",
+      "Design Systems",
+      "Design Tokens",
+      "Interactive Prototypes",
+      "Product Design"
+    ]
+  },
+  {
+    "title": "Business Process Automation",
+    "slug": "automation",
+    "iconName": "Cpu",
+    "shortDesc": "Intelligent RPA bots, automated data extractors, and cognitive workflow integration.",
+    "fullDesc": "Eliminate repetitive manual bottlenecks across your organization. Our intelligent automation combines computer vision, document parsing, and API webhooks to automate critical business operations.",
+    "image": "/images/ai-hero.jpg",
+    "features": [
+      "Cognitive Document Processing (IDP)",
+      "Robotic Process Automation (RPA)",
+      "Webhook & Multi-Platform Event Sync",
+      "Real-Time SLA & Audit Logging"
+    ],
+    "technologies": [
+      "Python",
+      "Temporal",
+      "Celery",
+      "Zapier APIs",
+      "OCR Engines"
+    ],
+    "metrics": "85% Reduction in Manual Processing Hours",
+    "active": true,
+    "metaTitle": "Intelligent Business Process Automation (RPA) | VyomAI",
+    "metaDescription": "End-to-end cognitive robotic process automation (RPA), intelligent document extraction, asynchronous workflows, and API integrations.",
+    "metaImage": "/images/logo.jpg",
+    "keywords": [
+      "Business Process Automation",
+      "RPA",
+      "Intelligent Automation",
+      "Document Processing",
+      "Workflow Automation",
+      "Python",
+      "Temporal"
+    ]
+  }
+]

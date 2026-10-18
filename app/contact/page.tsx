@@ -4,8 +4,8 @@ import { Sparkles, Shield, Clock, MessageSquare, MapPin } from "lucide-react";
 import { companyInfo } from "@/data/company";
 import { getPageSeoFromDb } from "@/lib/db-service";
 import { constructMetadata } from "@/lib/seo-helper";
-
 export async function generateMetadata(): Promise<Metadata> {
+  "use cache";
   const seo = await getPageSeoFromDb("contact");
   return constructMetadata({
     metaTitle: seo.metaTitle,

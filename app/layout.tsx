@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,6 +14,14 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#050b14",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://vyomai.com"),
@@ -56,8 +65,13 @@ export const metadata: Metadata = {
     images: ["/images/logo.jpg"],
   },
   icons: {
-    icon: "/images/logo.jpg",
-    apple: "/images/logo.jpg",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -72,9 +86,11 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} dark scroll-smooth h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden w-full">
+        <Suspense fallback={<div className="h-20 w-full" />}>
+          <Navbar />
+        </Suspense>
+        <main className="flex-1 w-full min-w-0 overflow-x-hidden">{children}</main>
         <Footer />
       </body>
     </html>

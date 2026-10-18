@@ -9,8 +9,10 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const instant = false;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  "use cache";
   const { slug } = await params;
   const { data: service } = await getServiceBySlugFromDb(slug);
 

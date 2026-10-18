@@ -155,7 +155,7 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Open mobile navigation menu"
-                className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition-colors"
+                className="min-tap-target p-2.5 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition-colors flex items-center justify-center cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>

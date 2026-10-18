@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import { CareersClient } from "@/components/careers/CareersClient";
 import { getPageSeoFromDb } from "@/lib/db-service";
 import { constructMetadata } from "@/lib/seo-helper";
-
 export async function generateMetadata(): Promise<Metadata> {
+  "use cache";
   const seo = await getPageSeoFromDb("careers");
   return constructMetadata({
     metaTitle: seo.metaTitle,

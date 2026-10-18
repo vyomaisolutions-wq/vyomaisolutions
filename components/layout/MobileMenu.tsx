@@ -58,6 +58,17 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     };
   }, [isOpen, servicesExpanded]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -78,13 +89,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 240 }}
-            className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-slate-950 border-l border-cyan-500/20 shadow-2xl p-6 flex flex-col justify-between overflow-y-auto"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-[320px] sm:max-w-sm bg-slate-950 border-l border-cyan-500/20 shadow-2xl p-5 sm:p-6 flex flex-col justify-between overflow-y-auto overscroll-contain safe-pb"
           >
             <div>
               {/* Header with Logo and Close button */}
-              <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+              <div className="flex items-center justify-between pb-5 border-b border-slate-800/80">
                 <Link href="/" onClick={onClose} className="flex items-center gap-3">
-                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-cyan-400/50 p-0.5 bg-slate-900">
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-cyan-400/50 p-0.5 bg-slate-900 shrink-0">
                     <Image
                       src="/images/logo.jpg"
                       alt="VyomAI Logo"
@@ -101,14 +112,14 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 <button
                   onClick={onClose}
                   aria-label="Close navigation menu"
-                  className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/30 transition-colors"
+                  className="min-tap-target p-2.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/30 transition-colors flex items-center justify-center cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Navigation links */}
-              <nav className="mt-6 space-y-1">
+              <nav className="mt-5 space-y-1.5">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href;
 
@@ -117,7 +128,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                       <div key={item.label} className="py-1">
                         <button
                           onClick={() => setServicesExpanded(!servicesExpanded)}
-                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium text-slate-200 hover:bg-slate-900/80 hover:text-cyan-300 transition-colors"
+                          className="w-full min-h-[44px] flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium text-slate-200 hover:bg-slate-900/80 hover:text-cyan-300 transition-colors cursor-pointer"
                         >
                           <span>{item.label}</span>
                           <ChevronDown
@@ -134,18 +145,18 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.2 }}
-                              className="overflow-hidden pl-4 pr-1 py-2 space-y-1 bg-slate-900/40 rounded-xl my-1 border border-slate-800/60"
+                              className="overflow-hidden pl-3 pr-1 py-2 space-y-1 bg-slate-900/40 rounded-xl my-1 border border-slate-800/60"
                             >
                               {items.map((s) => (
                                 <Link
                                   key={s.id}
                                   href={s.href}
                                   onClick={onClose}
-                                  className="flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-slate-900/80 rounded-lg transition-colors"
+                                  className="flex items-center justify-between px-3 py-2.5 min-h-[40px] text-xs font-medium text-slate-300 hover:text-cyan-300 hover:bg-slate-900/80 rounded-lg transition-colors"
                                 >
-                                  <span>{s.title}</span>
+                                  <span className="truncate pr-2">{s.title}</span>
                                   {s.badge && (
-                                    <span className="text-[10px] text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800">
+                                    <span className="text-[10px] text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800 shrink-0">
                                       {s.badge}
                                     </span>
                                   )}
@@ -154,7 +165,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                               <Link
                                 href="/services"
                                 onClick={onClose}
-                                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[40px] text-xs font-semibold text-cyan-400 hover:text-cyan-300"
                               >
                                 <span>View All Services</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -171,7 +182,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                       key={item.label}
                       href={item.href}
                       onClick={onClose}
-                      className={`block px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                      className={`flex items-center min-h-[44px] px-4 py-3 rounded-xl text-base font-medium transition-colors ${
                         isActive
                           ? "bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
                           : "text-slate-200 hover:bg-slate-900/80 hover:text-cyan-300"
@@ -185,8 +196,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-6 border-t border-slate-800">
-              <Button href="/contact" variant="primary" size="md" className="w-full">
+            <div className="pt-5 border-t border-slate-800">
+              <Button href="/contact" variant="primary" size="md" className="w-full min-h-[44px]" onClick={onClose}>
                 Get In Touch
               </Button>
             </div>

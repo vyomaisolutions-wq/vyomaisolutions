@@ -159,23 +159,22 @@ export const CareersClient: React.FC = () => {
           <div className="absolute inset-0 grid-bg opacity-20" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-5 backdrop-blur-md shadow-sm">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Join The Engineering Frontier // VyomAI Careers</span>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 min-w-0">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-5 backdrop-blur-md shadow-sm max-w-full">
+            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="truncate">Join The Engineering Frontier // VyomAI Careers</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-5">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-5 break-words">
             Architect The Future of{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-500">
               Autonomous Intelligence
             </span>
           </h1>
 
-          <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto font-medium mb-8">
+          <p className="text-sm sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto font-medium mb-8">
             We are assembling an elite collective of systems architects, neural researchers, and distributed cloud engineers solving the hardest problems in applied AI. Zero red tape, high autonomy, and dedicated private GPU compute.
           </p>
-
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
@@ -183,7 +182,7 @@ export const CareersClient: React.FC = () => {
                 const el = document.getElementById("open-positions");
                 if (el) el.scrollIntoView({ behavior: "smooth" });
               }}
-              className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center gap-2"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
             >
               <span>Explore Open Roles</span>
               <ArrowRight className="w-4 h-4" />
@@ -429,37 +428,37 @@ export const CareersClient: React.FC = () => {
               {/* Close Button */}
               <button
                 onClick={handleCloseModal}
-                className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition-colors cursor-pointer"
+                className="absolute top-4 sm:top-6 right-4 sm:right-6 w-11 h-11 flex items-center justify-center rounded-xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition-colors cursor-pointer min-tap-target shrink-0 z-20"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {submitSuccess ? (
-                <div className="text-center py-12 space-y-5">
+                <div className="text-center py-10 sm:py-12 space-y-5">
                   <div className="w-16 h-16 rounded-full bg-cyan-950 border border-cyan-400/50 flex items-center justify-center mx-auto text-cyan-400 shadow-[0_0_30px_rgba(0,240,255,0.3)]">
                     <Check className="w-8 h-8 stroke-[3]" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Application Received!</h3>
-                  <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white break-words">Application Received!</h3>
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
                     Thank you for applying to <span className="text-cyan-400 font-semibold">{formData.role || "VyomAI"}</span>. Our engineering team reviews every technical submission and will reach out directly within 48 business hours.
                   </p>
                   <div className="pt-4">
                     <button
                       onClick={handleCloseModal}
-                      className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer min-h-[44px]"
                     >
                       Back to Careers
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div>
+                <div className="space-y-5 sm:space-y-6">
+                  <div className="pr-10">
                     <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider block">
                       Engineering Application
                     </span>
-                    <h3 className="text-2xl font-bold text-white mt-1">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mt-1 break-words">
                       {selectedJobForModal ? selectedJobForModal.title : "General Open Application"}
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">
@@ -473,9 +472,9 @@ export const CareersClient: React.FC = () => {
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmitApplication} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                  <form onSubmit={handleSubmitApplication} className="space-y-3.5 sm:space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           Full Name <span className="text-cyan-400">*</span>
                         </label>
@@ -485,11 +484,11 @@ export const CareersClient: React.FC = () => {
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           placeholder="e.g. Alex Rivera"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         />
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           Email Address <span className="text-cyan-400">*</span>
                         </label>
@@ -499,13 +498,13 @@ export const CareersClient: React.FC = () => {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="alex@domain.io"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           Phone Number
                         </label>
@@ -514,11 +513,11 @@ export const CareersClient: React.FC = () => {
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+1 (555) 000-0000"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         />
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           LinkedIn / GitHub / Portfolio <span className="text-cyan-400">*</span>
                         </label>
@@ -528,20 +527,20 @@ export const CareersClient: React.FC = () => {
                           value={formData.portfolioUrl}
                           onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
                           placeholder="https://github.com/username"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           Target Role
                         </label>
                         <select
                           value={formData.role}
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         >
                           {jobOpenings.map((j) => (
                             <option key={j.id} value={j.title}>
@@ -552,14 +551,14 @@ export const CareersClient: React.FC = () => {
                         </select>
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <label className="text-xs font-mono text-slate-300 block">
                           Relevant Experience
                         </label>
                         <select
                           value={formData.experienceYears}
                           onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         >
                           <option value="1-3 Years">1 – 3 Years</option>
                           <option value="3-5 Years">3 – 5 Years</option>
@@ -570,13 +569,13 @@ export const CareersClient: React.FC = () => {
                     </div>
 
                     {/* Resume Upload Simulator */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       <label className="text-xs font-mono text-slate-300 block">
                         Resume / CV (PDF, DOCX)
                       </label>
-                      <label className="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-900/60 cursor-pointer transition-colors text-xs text-slate-400 hover:text-cyan-300">
-                        <UploadCloud className="w-4 h-4 text-cyan-400" />
-                        <span>
+                      <label className="flex items-center justify-center gap-2 p-3.5 sm:p-4 rounded-xl border border-dashed border-slate-700 hover:border-cyan-500/50 bg-slate-900/60 cursor-pointer transition-colors text-xs text-slate-400 hover:text-cyan-300 min-h-[48px]">
+                        <UploadCloud className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <span className="truncate">
                           {formData.resumeFileName ? (
                             <span className="text-cyan-300 font-semibold">{formData.resumeFileName}</span>
                           ) : (
@@ -593,7 +592,7 @@ export const CareersClient: React.FC = () => {
                     </div>
 
                     {/* Technical Pitch */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       <label className="text-xs font-mono text-slate-300 block">
                         Technical Highlights / Why VyomAI? <span className="text-cyan-400">*</span>
                       </label>
@@ -603,7 +602,7 @@ export const CareersClient: React.FC = () => {
                         value={formData.pitch}
                         onChange={(e) => setFormData({ ...formData, pitch: e.target.value })}
                         placeholder="Tell us about a non-trivial technical system you built, benchmarked, or debugged under pressure..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors resize-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors resize-none"
                       />
                     </div>
 
@@ -611,7 +610,7 @@ export const CareersClient: React.FC = () => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 min-h-[48px]"
                       >
                         {isSubmitting ? (
                           <>

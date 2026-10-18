@@ -197,22 +197,23 @@ spec:
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] break-words">
                 {service.title}
               </h1>
 
               {/* Short summary callout */}
-              <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-3xl font-medium">
+              <p className="text-base sm:text-lg md:text-xl text-slate-200 leading-relaxed max-w-3xl font-medium">
                 {service.shortDesc}
               </p>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
                 <Button
                   href={`/contact?service=${encodeURIComponent(service.title)}`}
                   variant="primary"
                   size="lg"
                   rightIcon={<ArrowRight className="w-4 h-4" />}
+                  className="w-full sm:w-auto min-h-[48px] justify-center"
                 >
                   Initiate Technical Consultation
                 </Button>
@@ -221,7 +222,7 @@ spec:
                     const el = document.getElementById("architecture-details");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/40 text-slate-200 font-medium text-sm transition-all cursor-pointer backdrop-blur-md"
+                  className="px-5 py-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/40 text-slate-200 font-medium text-sm transition-all cursor-pointer backdrop-blur-md min-h-[48px] flex items-center justify-center w-full sm:w-auto"
                 >
                   Explore Technical Blueprint ↓
                 </button>
@@ -229,11 +230,11 @@ spec:
             </div>
 
             {/* Quick Metrics HUD Card */}
-            <div className="lg:col-span-4">
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-cyan-950/30 border border-cyan-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(0,240,255,0.1)] backdrop-blur-xl space-y-5">
+            <div className="lg:col-span-4 min-w-0">
+              <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-cyan-950/30 border border-cyan-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(0,240,255,0.1)] backdrop-blur-xl space-y-4 sm:space-y-5 min-w-0">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                   <span className="text-xs font-mono text-cyan-400 flex items-center gap-1.5 uppercase font-bold tracking-wider">
-                    <Activity className="w-4 h-4 text-cyan-400" /> Operational Metrics
+                    <Activity className="w-4 h-4 text-cyan-400 shrink-0" /> Operational Metrics
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 font-semibold">
                     Verified
@@ -245,32 +246,32 @@ spec:
                     <span className="text-xs text-slate-400 font-mono block">
                       Target SLA &amp; Precision Guarantee:
                     </span>
-                    <p className="text-base font-extrabold text-white leading-snug">
+                    <p className="text-sm sm:text-base font-extrabold text-white leading-snug break-words">
                       {service.metrics || "99.4% Model Precision Across Production Pipelines"}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                      <span className="text-[10px] font-mono text-slate-400 block uppercase">
+                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 min-w-0">
+                      <span className="text-[10px] font-mono text-slate-400 block uppercase truncate">
                         Deployment Velocity
                       </span>
-                      <span className="text-sm font-bold text-cyan-300 font-mono">
+                      <span className="text-xs sm:text-sm font-bold text-cyan-300 font-mono">
                         2-4 Sprints
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                      <span className="text-[10px] font-mono text-slate-400 block uppercase">
+                    <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 min-w-0">
+                      <span className="text-[10px] font-mono text-slate-400 block uppercase truncate">
                         Data Sovereignty
                       </span>
-                      <span className="text-sm font-bold text-emerald-400 font-mono">
+                      <span className="text-xs sm:text-sm font-bold text-emerald-400 font-mono">
                         Air-Gapped / VPC
                       </span>
                     </div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed font-mono">
-                    <Shield className="w-3.5 h-3.5 text-cyan-400 inline mr-1.5" />
+                    <Shield className="w-3.5 h-3.5 text-cyan-400 inline mr-1.5 shrink-0" />
                     SOC2 Type II, ISO 27001, and Zero-Data-Persistence compliant pipelines.
                   </div>
                 </div>
@@ -281,47 +282,47 @@ spec:
       </section>
 
       {/* ===================== INTERACTIVE NAVIGATION TABS ===================== */}
-      <section id="architecture-details" className="py-6 border-b border-slate-900 bg-slate-950/60 sticky top-16 z-30 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+      <section id="architecture-details" className="py-3 sm:py-6 border-b border-slate-900 bg-slate-950/80 sticky top-16 z-30 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 min-tap-target ${
                 activeTab === "overview"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
                   : "bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
-              <Workflow className="w-3.5 h-3.5" />
+              <Workflow className="w-3.5 h-3.5 shrink-0" />
               <span>Architectural Blueprint</span>
             </button>
 
             <button
               onClick={() => setActiveTab("pipeline")}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 min-tap-target ${
                 activeTab === "pipeline"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
                   : "bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
-              <Sliders className="w-3.5 h-3.5" />
+              <Sliders className="w-3.5 h-3.5 shrink-0" />
               <span>4-Phase Engineering Pipeline</span>
             </button>
 
             <button
               onClick={() => setActiveTab("specs")}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 min-tap-target ${
                 activeTab === "specs"
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
                   : "bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
-              <Terminal className="w-3.5 h-3.5" />
+              <Terminal className="w-3.5 h-3.5 shrink-0" />
               <span>Cluster Spec (YAML)</span>
             </button>
           </div>
 
-          <div className="text-xs font-mono text-slate-400 hidden sm:block">
+          <div className="text-xs font-mono text-slate-400 hidden md:block">
             <span>Capability: </span>
             <span className="text-cyan-400 font-bold">{service.title}</span>
           </div>
@@ -380,21 +381,21 @@ spec:
                 )}
 
                 {/* In-Depth Multi-Paragraph Description */}
-                <div className="p-8 sm:p-10 rounded-3xl bg-slate-900/70 border border-slate-800/80 shadow-xl space-y-6">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight border-b border-slate-800/80 pb-4 flex items-center gap-3">
-                    <Zap className="w-6 h-6 text-cyan-400" />
+                <div className="p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-slate-900/70 border border-slate-800/80 shadow-xl space-y-5 sm:space-y-6 min-w-0">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight border-b border-slate-800/80 pb-4 flex items-center gap-3 break-words">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 shrink-0" />
                     <span>Scope of Architecture &amp; Methodology</span>
                   </h2>
 
-                  <div className="space-y-5 text-slate-300 leading-relaxed text-base sm:text-lg">
+                  <div className="space-y-4 sm:space-y-5 text-slate-300 leading-relaxed text-sm sm:text-base md:text-lg">
                     {service.fullDesc ? (
                       service.fullDesc.split("\n\n").map((para, idx) => (
-                        <p key={idx} className="text-justify font-sans leading-relaxed">
+                        <p key={idx} className="font-sans leading-relaxed">
                           {para}
                         </p>
                       ))
                     ) : (
-                      <p className="text-justify font-sans leading-relaxed">
+                      <p className="font-sans leading-relaxed">
                         {service.shortDesc}
                       </p>
                     )}
@@ -402,10 +403,10 @@ spec:
                 </div>
 
                 {/* Core Engineering Deliverables Grid */}
-                <div className="p-8 sm:p-10 rounded-3xl bg-slate-900/70 border border-slate-800/80 shadow-xl space-y-6">
-                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+                <div className="p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-slate-900/70 border border-slate-800/80 shadow-xl space-y-5 sm:space-y-6 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-4">
+                    <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" />
                       <span>Production Deliverables &amp; Artifacts</span>
                     </h3>
                     <span className="text-xs font-mono text-cyan-400 font-bold">
@@ -413,21 +414,21 @@ spec:
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                     {service.features &&
                       service.features.map((feat, i) => (
                         <div
                           key={i}
-                          className="group/item flex items-start gap-3.5 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-cyan-500/40 hover:bg-slate-950 transition-all shadow-md"
+                          className="group/item flex items-start gap-3 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-cyan-500/40 hover:bg-slate-950 transition-all shadow-md min-w-0"
                         >
                           <div className="p-1.5 rounded-lg bg-cyan-950/70 text-cyan-400 group-hover/item:bg-cyan-500 group-hover/item:text-slate-950 transition-colors shrink-0 mt-0.5">
                             <Check className="w-3.5 h-3.5" />
                           </div>
-                          <div>
-                            <span className="text-sm font-semibold text-slate-100 group-hover/item:text-cyan-200 transition-colors block">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-100 group-hover/item:text-cyan-200 transition-colors block break-words">
                               {feat}
                             </span>
-                            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+                            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block truncate">
                               Automated validation &amp; CI/CD regression verified
                             </span>
                           </div>
@@ -601,27 +602,28 @@ spec:
             </div>
 
             {/* Bottom Strategic Engagement Banner */}
-            <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-[#070b14] border border-cyan-500/40 shadow-2xl relative overflow-hidden space-y-5">
+            <div className="p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-[#070b14] border border-cyan-500/40 shadow-2xl relative overflow-hidden space-y-4 sm:space-y-5 min-w-0">
               <div className="relative z-10 space-y-3">
                 <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-widest block">
                   Next Step // Architecture Scope
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white break-words">
                   Ready to deploy {service.title}?
                 </h3>
-                <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
+                <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-2xl leading-relaxed">
                   Schedule a technical discovery session with our Principal AI Architects to evaluate your data schemas, model requirements, and deployment timeline.
                 </p>
-                <div className="pt-2 flex flex-wrap gap-4">
+                <div className="pt-2 flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
                   <Button
                     href={`/contact?service=${encodeURIComponent(service.title)}`}
                     variant="primary"
                     size="lg"
                     rightIcon={<ArrowRight className="w-4 h-4" />}
+                    className="w-full sm:w-auto min-h-[48px] justify-center"
                   >
                     Initiate Technical Scope
                   </Button>
-                  <Button href="/services" variant="secondary" size="lg">
+                  <Button href="/services" variant="secondary" size="lg" className="w-full sm:w-auto min-h-[48px] justify-center">
                     Compare Other Capabilities
                   </Button>
                 </div>

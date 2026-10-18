@@ -34,10 +34,10 @@ export const InteractiveHeroButton: React.FC<InteractiveHeroButtonProps> = ({
 
   return (
     <motion.div
-      whileHover={{ y: -3, scale: 1.04 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={{ y: -3, scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="relative rounded-full"
+      className={`relative rounded-full w-full sm:w-auto ${className}`}
     >
       <Link
         ref={buttonRef}
@@ -45,11 +45,11 @@ export const InteractiveHeroButton: React.FC<InteractiveHeroButtonProps> = ({
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`relative inline-flex items-center justify-center px-8 sm:px-9 py-3.5 sm:py-4 rounded-full font-bold text-sm tracking-wider uppercase overflow-hidden transition-all duration-300 select-none cursor-pointer ${
+        className={`relative inline-flex items-center justify-center w-full sm:w-auto min-h-[48px] px-6 sm:px-9 py-3 sm:py-3.5 rounded-full font-bold text-xs sm:text-sm tracking-wider uppercase overflow-hidden transition-all duration-300 select-none cursor-pointer ${
           isPrimary
             ? "text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 border border-cyan-300/50 shadow-[0_0_25px_rgba(0,240,255,0.35)] hover:shadow-[0_0_40px_rgba(0,240,255,0.7)]"
             : "text-slate-100 bg-slate-950/80 hover:bg-slate-900/90 border border-slate-700/80 hover:border-cyan-400/80 shadow-lg shadow-black/50 hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] backdrop-blur-xl"
-        } ${className}`}
+        }`}
       >
         {/* Dynamic Interactive Cursor-Tracking Spotlight Beam inside the button */}
         <div

@@ -58,7 +58,7 @@ export const PortfolioPageClient: React.FC = () => {
   };
 
   return (
-    <div className="pt-20 pb-16 overflow-hidden">
+    <div className="pt-16 sm:pt-20 pb-12 sm:pb-16 overflow-hidden w-full min-w-0">
       {/* Hero Header with Reduced Padding & Cosmic Neural Background Image */}
       <section className="relative py-12 sm:py-16 text-center overflow-hidden border-b border-slate-900/80">
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -76,20 +76,20 @@ export const PortfolioPageClient: React.FC = () => {
           <div className="absolute inset-0 grid-bg opacity-20" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-5">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Proven Engineering Demonstrations</span>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 min-w-0">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-5 max-w-full">
+            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="truncate">Proven Engineering Demonstrations</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 sm:mb-5">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 sm:mb-5 break-words">
             Case Studies &amp;{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-300 to-blue-500">
               Architectural Blueprints
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto">
             Deep dive into our engineering engagements across quantitative finance, healthcare, distributed cloud orchestration, and spatial commerce.
           </p>
         </div>
@@ -175,40 +175,40 @@ export const PortfolioPageClient: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3 }}
-              className="relative w-full max-w-2xl bg-slate-900 border border-cyan-500/30 rounded-2xl shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto z-10"
+              className="relative w-full max-w-2xl bg-slate-900 border border-cyan-500/30 rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[88vh] overflow-y-auto z-10 min-w-0"
             >
               <button
                 onClick={() => setSelectedProject(null)}
                 aria-label="Close modal"
-                className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                className="absolute top-4 sm:top-5 right-4 sm:right-5 w-11 h-11 flex items-center justify-center rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer min-tap-target shrink-0 z-20"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-4">
+              <div className="mb-4 pr-10">
                 <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider block mb-1">
                   {selectedProject.sampleBadge}
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded bg-cyan-950 border border-cyan-800 text-cyan-300">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded bg-cyan-950 border border-cyan-800 text-cyan-300 inline-block">
                   {selectedProject.category} • {selectedProject.clientIndustry}
                 </span>
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-4">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 break-words">
                 {selectedProject.title}
               </h3>
 
-              <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/20 mb-6">
+              <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/20 mb-5 min-w-0">
                 <span className="text-xs font-mono text-slate-400 block mb-1">
                   Demonstrated Production Impact:
                 </span>
-                <p className="text-sm font-semibold text-cyan-300 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-400 animate-pulse" />
-                  {selectedProject.results}
+                <p className="text-xs sm:text-sm font-semibold text-cyan-300 flex items-center gap-2 break-words">
+                  <Activity className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
+                  <span>{selectedProject.results}</span>
                 </p>
               </div>
 
-              <div className="space-y-4 text-sm text-slate-300 leading-relaxed mb-6">
+              <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
                 <div>
                   <h4 className="font-semibold text-white mb-1">The Engineering Challenge:</h4>
                   <p>
@@ -225,7 +225,7 @@ export const PortfolioPageClient: React.FC = () => {
                 <h4 className="text-xs font-mono uppercase text-slate-400 mb-2">
                   Technology Stack:
                 </h4>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {selectedProject.technologies.map((t) => (
                     <span
                       key={t}
@@ -237,11 +237,12 @@ export const PortfolioPageClient: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-800 w-full">
                 <Button
                   onClick={() => setSelectedProject(null)}
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto min-h-[44px] justify-center"
                 >
                   Close
                 </Button>
@@ -250,6 +251,7 @@ export const PortfolioPageClient: React.FC = () => {
                   variant="primary"
                   size="sm"
                   rightIcon={<ArrowRight className="w-4 h-4" />}
+                  className="w-full sm:w-auto min-h-[44px] justify-center"
                 >
                   Discuss Similar Project
                 </Button>

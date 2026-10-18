@@ -62,13 +62,13 @@ export const ServicesSection: React.FC = () => {
         )}
 
         {/* Bottom Callout banner */}
-        <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-blue-950/40 border border-cyan-500/20 text-center flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="text-left">
-            <h4 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              Need a bespoke architecture or technical feasibility audit?
-            </h4>
-            <p className="text-sm text-slate-300 mt-1">
+        <div className="mt-12 sm:mt-16 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-blue-950/40 border border-cyan-500/20 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-1">
+            <h3 className="text-base sm:text-lg font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+              <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
+              <span>Need a bespoke architecture or technical feasibility audit?</span>
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300">
               Speak directly with our senior AI research engineers and systems architects.
             </p>
           </div>
@@ -76,8 +76,8 @@ export const ServicesSection: React.FC = () => {
             href="/contact"
             variant="primary"
             size="md"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="shrink-0"
+            rightIcon={<ArrowRight className="w-4 h-4 shrink-0" />}
+            className="w-full sm:w-auto shrink-0 text-center"
           >
             Request Architectural Consultation
           </Button>

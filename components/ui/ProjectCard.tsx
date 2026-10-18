@@ -23,10 +23,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpenModal }
       className="group relative flex flex-col justify-between rounded-3xl bg-gradient-to-br from-white/[0.07] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* 3D Visual Header with Real Image */}
-      <div className="relative h-56 w-full overflow-hidden border-b border-white/10 p-5 flex flex-col justify-between">
+      <div className="relative h-48 sm:h-56 w-full overflow-hidden border-b border-white/10 p-4 sm:p-5 flex flex-col justify-between">
         {/* Real 3D Project Image */}
         <Image
-          src={project.image || `/api/project-img/${project.id || project.slug || "neuro-finance"}`}
+          src={project.image || `/images/projects/${project.id || project.slug || "neuro-finance"}.jpg`}
           alt={project.title}
           fill
           unoptimized
@@ -39,50 +39,50 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpenModal }
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl group-hover:bg-cyan-400/25 transition-all duration-500 pointer-events-none" />
 
         {/* Top Badges */}
-        <div className="relative z-10 flex items-center justify-between">
-          <span className="text-[11px] font-semibold tracking-wider uppercase px-3 py-1 rounded-full bg-slate-950/80 border border-cyan-400/40 text-cyan-300 backdrop-blur-md shadow-md">
+        <div className="relative z-10 flex items-center justify-between gap-2">
+          <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase px-2.5 sm:px-3 py-1 rounded-full bg-slate-950/80 border border-cyan-400/40 text-cyan-300 backdrop-blur-md shadow-md truncate">
             {project.category}
           </span>
-          <span className="text-[10px] font-medium text-slate-200 bg-slate-950/70 px-2.5 py-0.5 rounded-full border border-white/15 backdrop-blur-md">
+          <span className="text-[9px] sm:text-[10px] font-medium text-slate-200 bg-slate-950/70 px-2 sm:px-2.5 py-0.5 rounded-full border border-white/15 backdrop-blur-md truncate shrink-0">
             {project.clientIndustry}
           </span>
         </div>
 
         {/* Dynamic Metric Display inside visual */}
-        <div className="relative z-10 p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 backdrop-blur-md shadow-lg">
-          <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300">
-            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+        <div className="relative z-10 p-2.5 sm:p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 backdrop-blur-md shadow-lg">
+          <div className="flex items-center gap-2 text-xs font-semibold text-cyan-300 min-w-0">
+            <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse shrink-0" />
             <span className="truncate">{project.results}</span>
           </div>
         </div>
       </div>
 
       {/* Body Content */}
-      <div className="p-6 flex-1 flex flex-col justify-between">
+      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
         <div>
           <div className="mb-2">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-cyan-400/90 font-semibold">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-cyan-400/90 font-semibold block truncate">
               {project.sampleBadge}
             </span>
           </div>
-          <h3 className="text-xl font-bold text-white group-hover:text-cyan-200 transition-colors leading-snug mb-3">
+          <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-200 transition-colors leading-snug mb-2.5 sm:mb-3 break-words">
             {project.title}
           </h3>
-          <p className="text-sm text-slate-300/90 group-hover:text-slate-200 leading-relaxed mb-4 transition-colors">
+          <p className="text-xs sm:text-sm text-slate-300/90 group-hover:text-slate-200 leading-relaxed mb-4 transition-colors line-clamp-3">
             {project.description}
           </p>
         </div>
 
-        {/* Action Link (Tech stack tags row removed per user request) */}
-        <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+        {/* Action Link */}
+        <div className="pt-3.5 sm:pt-4 border-t border-white/10 flex items-center justify-between">
           <button
             onClick={() => onOpenModal?.(project)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors group/link cursor-pointer"
+            className="inline-flex items-center gap-1.5 py-1 text-xs sm:text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors group/link cursor-pointer"
           >
             <span>View Case Study</span>
-            <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
+            <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 shrink-0" />
           </button>
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-xs text-slate-400 font-mono shrink-0">
             Case #0{String(project.id || project.slug || (project as unknown as { _id?: string })._id || "1").slice(-1)}
           </span>
         </div>

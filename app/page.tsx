@@ -10,8 +10,8 @@ import { PortfolioSection } from "@/components/sections/PortfolioSection";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { BlogSection } from "@/components/sections/BlogSection";
 import { CTASection } from "@/components/sections/CTASection";
-
 export async function generateMetadata(): Promise<Metadata> {
+  "use cache";
   const seo = await getPageSeoFromDb("home");
   return constructMetadata({
     metaTitle: seo.metaTitle,

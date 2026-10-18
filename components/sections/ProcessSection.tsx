@@ -115,17 +115,17 @@ export const ProcessSection: React.FC = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
         >
           {processSteps.map((step, idx) => (
             <motion.div
               key={step.step}
               variants={fadeIn("up", idx * 0.08)}
-              whileHover={{ y: -8, scale: 1.02 }}
+              whileHover={{ y: -6, scale: 1.02 }}
               onMouseEnter={() => setHoveredStep(idx)}
               onMouseLeave={() => setHoveredStep(null)}
               transition={{ type: "spring", stiffness: 350, damping: 22 }}
-              className="group relative p-7 sm:p-8 rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
+              className="group relative p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer min-w-0"
             >
               {/* Top Laser Edge Highlight on hover */}
               <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -140,33 +140,33 @@ export const ProcessSection: React.FC = () => {
 
               <div className="relative z-10">
                 {/* Header: Icon + Phase Pill */}
-                <div className="flex items-center justify-between mb-5">
-                  <div className="p-3.5 rounded-2xl bg-slate-900/70 border border-white/10 group-hover:border-cyan-400/60 group-hover:bg-cyan-950/70 group-hover:shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all duration-300">
+                <div className="flex items-center justify-between mb-4 sm:mb-5">
+                  <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/70 border border-white/10 group-hover:border-cyan-400/60 group-hover:bg-cyan-950/70 group-hover:shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all duration-300">
                     {getIcon(step.iconName)}
                   </div>
-                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-slate-950/80 border border-white/10 text-cyan-400 group-hover:border-cyan-500/40 transition-colors shadow-sm">
+                  <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2.5 sm:px-3 py-1 rounded-full bg-slate-950/80 border border-white/10 text-cyan-400 group-hover:border-cyan-500/40 transition-colors shadow-sm">
                     PHASE {step.step}
                   </span>
                 </div>
 
                 {/* Subtitle pill */}
-                <div className="text-[10px] font-mono uppercase tracking-wider text-cyan-300/80 mb-2 font-semibold">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-cyan-300/80 mb-1.5 sm:mb-2 font-semibold">
                   {step.subtitle}
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-bold text-white group-hover:text-cyan-200 transition-colors mb-3 leading-snug">
+                <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-200 transition-colors mb-2.5 sm:mb-3 leading-snug break-words">
                   {step.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-slate-300/90 group-hover:text-slate-200 transition-colors leading-relaxed mb-6 text-justify">
+                <p className="text-xs sm:text-sm text-slate-300/90 group-hover:text-slate-200 transition-colors leading-relaxed mb-5 sm:mb-6 text-left sm:text-justify">
                   {step.description}
                 </p>
               </div>
 
               {/* Deliverables Pills */}
-              <div className="relative z-10 pt-4 border-t border-white/10 space-y-2">
+              <div className="relative z-10 pt-3.5 sm:pt-4 border-t border-white/10 space-y-2">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block tracking-wider font-semibold">
                   Deliverables:
                 </span>
@@ -174,10 +174,10 @@ export const ProcessSection: React.FC = () => {
                   {step.deliverables.map((deliv, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 text-xs text-slate-300 group-hover:text-slate-200 transition-colors"
+                      className="flex items-start gap-2 text-xs text-slate-300 group-hover:text-slate-200 transition-colors"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                      <span className="truncate">{deliv}</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                      <span className="break-words leading-tight">{deliv}</span>
                     </div>
                   ))}
                 </div>

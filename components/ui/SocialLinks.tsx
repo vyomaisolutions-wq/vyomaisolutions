@@ -57,7 +57,7 @@ export const SocialLinks: React.FC<SocialLinksProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={item.ariaLabel}
-          className="group relative p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-cyan-500/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          className="group relative w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-cyan-500/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-tap-target shrink-0"
         >
           {getIcon(item.platform)}
           <span className="sr-only">{item.ariaLabel}</span>

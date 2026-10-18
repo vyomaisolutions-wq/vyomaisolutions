@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { getPageSeoFromDb } from "@/lib/db-service";
 import { constructMetadata } from "@/lib/seo-helper";
 import { BlogPageClient } from "@/components/blog/BlogPageClient";
-
 export async function generateMetadata(): Promise<Metadata> {
+  "use cache";
   const seo = await getPageSeoFromDb("blog");
   return constructMetadata({
     metaTitle: seo.metaTitle,

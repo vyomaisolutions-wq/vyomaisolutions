@@ -109,12 +109,13 @@ export const PortfolioSection: React.FC = () => {
         </motion.div>
 
         {/* Bottom CTA */}
-        <div className="mt-16 text-center">
+        <div className="mt-12 sm:mt-16 text-center">
           <Button
             href="/portfolio"
             variant="secondary"
             size="lg"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
+            rightIcon={<ArrowRight className="w-4 h-4 shrink-0" />}
+            className="w-full sm:w-auto text-center"
           >
             Explore Complete Portfolio &amp; Technical Whitepapers
           </Button>
@@ -124,7 +125,7 @@ export const PortfolioSection: React.FC = () => {
       {/* Case Study Modal Preview */}
       <AnimatePresence>
         {selectedProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -137,18 +138,18 @@ export const PortfolioSection: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-10 shadow-2xl z-10 space-y-6"
+              className="relative w-full max-w-3xl max-h-[88vh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 p-5 sm:p-8 lg:p-10 shadow-2xl z-10 space-y-4 sm:space-y-6 overscroll-contain my-auto"
             >
               <button
                 onClick={() => setSelectedProject(null)}
                 aria-label="Close modal"
-                className="absolute top-6 right-6 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="min-tap-target absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 pr-10">
+                <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
                   {selectedProject.category}
                 </span>
                 <span className="text-slate-600">•</span>
@@ -162,21 +163,21 @@ export const PortfolioSection: React.FC = () => {
                 )}
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white break-words">
                 {selectedProject.title}
               </h3>
 
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-300 text-xs sm:text-sm lg:text-base leading-relaxed">
                 {selectedProject.description}
               </p>
 
-              <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/20">
-                <span className="text-xs font-mono text-cyan-400 block mb-1">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950 border border-cyan-500/20">
+                <span className="text-[11px] font-mono text-cyan-400 block mb-1">
                   Verified Outcome:
                 </span>
-                <p className="text-base font-bold text-white flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-cyan-400" />
-                  {selectedProject.results}
+                <p className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 shrink-0" />
+                  <span className="break-words">{selectedProject.results}</span>
                 </p>
               </div>
 
@@ -184,11 +185,11 @@ export const PortfolioSection: React.FC = () => {
                 <span className="text-xs font-mono uppercase text-slate-400 block">
                   Tech Stack Deployed:
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {selectedProject.technologies.map((t, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-mono text-cyan-300"
+                      className="px-2.5 sm:px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] sm:text-xs font-mono text-cyan-300"
                     >
                       {t}
                     </span>
@@ -196,18 +197,19 @@ export const PortfolioSection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <Button
                   href="/contact"
                   variant="primary"
                   size="md"
-                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                  rightIcon={<ArrowRight className="w-4 h-4 shrink-0" />}
+                  className="w-full sm:w-auto text-center"
                 >
                   Commission a Similar Architecture
                 </Button>
                 <button
                   onClick={() => setSelectedProject(null)}
-                  className="text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="min-tap-target py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
                 >
                   Close Case Study
                 </button>

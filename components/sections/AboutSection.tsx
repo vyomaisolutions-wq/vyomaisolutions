@@ -80,12 +80,13 @@ export const AboutSection: React.FC = () => {
             </div>
 
             {/* CTA Button linking to About page */}
-            <div className="pt-4">
+            <div className="pt-3 sm:pt-4">
               <Button
                 href="/about"
                 variant="primary"
                 size="md"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
+                rightIcon={<ArrowRight className="w-4 h-4 shrink-0" />}
+                className="w-full sm:w-auto text-center"
               >
                 Learn More About Our Team &amp; Story
               </Button>
@@ -98,14 +99,14 @@ export const AboutSection: React.FC = () => {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-50px" }}
-            className="lg:col-span-6"
+            className="lg:col-span-6 w-full min-w-0"
           >
             <div className="relative group">
               {/* Outer Glowing Border Frame */}
-              <div className="relative rounded-3xl p-1.5 bg-gradient-to-tr from-cyan-400/50 via-sky-500/30 to-blue-600/50 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(0,240,255,0.2)] group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.7),0_0_55px_rgba(0,240,255,0.35)] transition-all duration-500 overflow-hidden">
-                <div className="relative h-[380px] sm:h-[450px] w-full rounded-[22px] overflow-hidden bg-slate-950">
+              <div className="relative rounded-3xl p-1 sm:p-1.5 bg-gradient-to-tr from-cyan-400/50 via-sky-500/30 to-blue-600/50 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(0,240,255,0.2)] group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.7),0_0_55px_rgba(0,240,255,0.35)] transition-all duration-500 overflow-hidden">
+                <div className="relative h-[260px] sm:h-[360px] lg:h-[450px] w-full rounded-[22px] overflow-hidden bg-slate-950">
                   <Image
-                    src="/api/about-bg"
+                    src="/images/about-hero-bg.jpg"
                     alt="VyomAI Neural Architecture & 3D AI Core"
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -117,19 +118,19 @@ export const AboutSection: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-cyan-500/10 pointer-events-none" />
 
                   {/* Top-left Holographic Status Badge */}
-                  <div className="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/80 border border-cyan-400/40 backdrop-blur-md text-xs font-mono text-cyan-300 shadow-lg">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                    <span>AI_CORE // NEURAL_ARCHITECTURE</span>
+                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-950/80 border border-cyan-400/40 backdrop-blur-md text-[10px] sm:text-xs font-mono text-cyan-300 shadow-lg max-w-[85%]">
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+                    <span className="truncate">AI_CORE // NEURAL_FABRIC</span>
                   </div>
 
                   {/* Bottom-right Floating Telemetry Metric */}
-                  <div className="absolute bottom-4 right-4 z-10 p-3.5 rounded-2xl bg-slate-950/85 border border-cyan-500/30 backdrop-blur-xl shadow-xl flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-500/40">
-                      <Activity className="w-4 h-4 animate-pulse" />
+                  <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 p-2 sm:p-3 rounded-2xl bg-slate-950/85 border border-cyan-500/30 backdrop-blur-xl shadow-xl flex items-center gap-2.5 max-w-[90%] sm:max-w-xs">
+                    <div className="p-1.5 sm:p-2 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-500/40 shrink-0">
+                      <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
                     </div>
-                    <div>
-                      <span className="text-xs font-bold text-white block">Active Neural Fabric</span>
-                      <span className="text-[10px] font-mono text-cyan-300 block">Sub-12ms Multi-Agent Latency</span>
+                    <div className="min-w-0">
+                      <span className="text-[11px] sm:text-xs font-bold text-white block truncate">Active Neural Fabric</span>
+                      <span className="text-[9px] sm:text-[10px] font-mono text-cyan-300 block truncate">Sub-12ms Multi-Agent Latency</span>
                     </div>
                   </div>
                 </div>
