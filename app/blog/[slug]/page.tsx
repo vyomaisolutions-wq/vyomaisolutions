@@ -28,7 +28,8 @@ export const instant = false;
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   "use cache";
   const { slug } = await params;
-  const { data: post } = await getBlogBySlugFromDb(slug);
+  const { data: dbPost } = await getBlogBySlugFromDb(slug);
+  const post = dbPost || blogPosts.find((p) => p.slug === slug);
 
   if (!post) {
     return {
@@ -51,8 +52,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export async function generateStaticParams() {
   const { data: blogs } = await getBlogsFromDb();
-  const list = blogs && blogs.length > 0 ? blogs : blogPosts;
-  return list.map((b: any) => ({
+  const blogMap = new Map<string, any>();
+  blogPosts.forEach((b) => blogMap.set(b.slug, b));
+  (blogs || []).forEach((b: any) => blogMap.set(b.slug, b));
+  return Array.from(blogMap.values()).map((b) => ({
     slug: b.slug,
   }));
 }
@@ -60,16 +63,35 @@ export async function generateStaticParams() {
 export default async function BlogPostDetailPage({ params }: PageProps) {
   "use cache";
   const { slug } = await params;
-  const [{ data: post }, { data: allBlogs }] = await Promise.all([
+  const [{ data: dbPost }, { data: allBlogs }] = await Promise.all([
     getBlogBySlugFromDb(slug),
     getBlogsFromDb(),
   ]);
+
+  const post = dbPost || blogPosts.find((p) => p.slug === slug);
 
   if (!post) {
     notFound();
   }
 
-  const recentPosts = ((allBlogs || []) as BlogPost[]).filter((p) => p.slug !== post.slug);
+  // Combine database blogs with static fallback so recent publications are always available
+  const blogMap = new Map<string, BlogPost>();
+  blogPosts.forEach((b) => blogMap.set(b.slug, b));
+  ((allBlogs || []) as BlogPost[]).forEach((b) => blogMap.set(b.slug, b));
+
+  const allAvailableBlogs = Array.from(blogMap.values());
+
+  // Sort chronologically descending (most recent first)
+  allAvailableBlogs.sort((a, b) => {
+    const timeA = new Date((a as any).createdAt || a.publishedDate || 0).getTime();
+    const timeB = new Date((b as any).createdAt || b.publishedDate || 0).getTime();
+    return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+  });
+
+  // Exclude current article and strictly take the top 6 most recent blogs
+  const recentPosts = allAvailableBlogs
+    .filter((p) => p.slug !== post.slug)
+    .slice(0, 6);
 
   return (
     <div className="pt-20 pb-16 overflow-hidden">
@@ -259,29 +281,6 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 </div>
               )}
             </div>
-
-            {/* Author Bio Card */}
-            <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center gap-5 sm:gap-6 min-w-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-xl sm:text-2xl text-slate-950 shadow-lg shadow-cyan-500/20 shrink-0">
-                {post.author.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </div>
-              <div className="text-center sm:text-left flex-1 min-w-0">
-                <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider block mb-1">
-                  About the Author
-                </span>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-1 truncate">{post.author.name}</h3>
-                <p className="text-xs text-slate-400 font-mono mb-2 truncate">{post.author.role}</p>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Spearheading advanced cognitive architecture and distributed inference research at VyomAI Technologies.
-                </p>
-              </div>
-              <Button href="/contact" variant="outline" size="sm" className="w-full sm:w-auto shrink-0 min-h-[44px]">
-                Consult Author
-              </Button>
-            </div>
           </article>
 
           {/* Right Column: Recent Publications / Topics Sidebar */}
@@ -304,37 +303,43 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 </Link>
               </div>
 
-              {/* List of items matching user screenshot */}
+              {/* List of top 6 recent blogs */}
               <div className="space-y-3">
-                {recentPosts.slice(0, 6).map((recent) => (
-                  <Link
-                    key={recent.id}
-                    href={`/blog/${recent.slug}`}
-                    className="group flex items-center gap-3.5 p-2 rounded-xl hover:bg-slate-800/70 border border-transparent hover:border-slate-800/90 transition-all duration-300"
-                  >
-                    {/* Rounded square thumbnail image */}
-                    <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-700/80 group-hover:border-cyan-400/50 shadow-md transition-colors">
-                      <Image
-                        src={recent.image}
-                        alt={recent.title}
-                        fill
-                        unoptimized
-                        sizes="56px"
-                        className="object-cover group-hover:scale-108 transition-transform duration-300"
-                      />
-                    </div>
+                {recentPosts.length > 0 ? (
+                  recentPosts.map((recent) => (
+                    <Link
+                      key={recent.id || (recent as any)._id || recent.slug}
+                      href={`/blog/${recent.slug}`}
+                      className="group flex items-center gap-3.5 p-2 rounded-xl hover:bg-slate-800/70 border border-transparent hover:border-slate-800/90 transition-all duration-300"
+                    >
+                      {/* Rounded square thumbnail image */}
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-700/80 group-hover:border-cyan-400/50 shadow-md transition-colors">
+                        <Image
+                          src={recent.image || "/images/blog/generative-ai-arch.jpg"}
+                          alt={recent.title || "Recent publication"}
+                          fill
+                          unoptimized
+                          sizes="56px"
+                          className="object-cover group-hover:scale-108 transition-transform duration-300"
+                        />
+                      </div>
 
-                    {/* Title & Category on the right */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors leading-snug line-clamp-2">
-                        {recent.title}
-                      </h4>
-                      <span className="text-[10px] font-mono text-cyan-400/80 mt-1 block">
-                        {recent.category}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                      {/* Title & Category on the right */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors leading-snug line-clamp-2">
+                          {recent.title}
+                        </h4>
+                        <span className="text-[10px] font-mono text-cyan-400/80 mt-1 block">
+                          {recent.category}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-500 font-mono py-2 text-center">
+                    No recent publications available.
+                  </p>
+                )}
               </div>
             </div>
 

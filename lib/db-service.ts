@@ -6,7 +6,7 @@ import { Contact, IContact } from "@/models/Contact";
 import { CareerApplication, ICareerApplication } from "@/models/CareerApplication";
 import { Job, IJob } from "@/models/Job";
 import { PageSeo, IPageSeo } from "@/models/PageSeo";
-import { BlogPost } from "@/data/blog";
+import { BlogPost, blogPosts } from "@/data/blog";
 import { Project as StaticProject } from "@/data/projects";
 import { Service as StaticService } from "@/data/services";
 import { jobOpenings, JobOpening } from "@/data/careers";
@@ -68,8 +68,8 @@ export async function getBlogsFromDb(query: { category?: string; search?: string
     }
   }
 
-  // Fallback to in-memory data
-  let filtered = [...inMemoryBlogs];
+  // Fallback to in-memory or static data
+  let filtered = inMemoryBlogs.length > 0 ? [...inMemoryBlogs] : [...blogPosts];
   if (query.category && query.category !== "All") {
     filtered = filtered.filter((b) => b.category === query.category);
   }
@@ -133,7 +133,9 @@ export async function getBlogBySlugFromDb(slug: string) {
     }
   }
 
-  const found = inMemoryBlogs.find((b) => b.slug === slug);
+  const found =
+    inMemoryBlogs.find((b) => b.slug === slug || b.id === slug) ||
+    blogPosts.find((b) => b.slug === slug || b.id === slug);
   return { data: found || null, source: "fallback" };
 }
 
