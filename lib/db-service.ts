@@ -6,10 +6,12 @@ import { Contact, IContact } from "@/models/Contact";
 import { CareerApplication, ICareerApplication } from "@/models/CareerApplication";
 import { Job, IJob } from "@/models/Job";
 import { PageSeo, IPageSeo } from "@/models/PageSeo";
+import { Subscriber, ISubscriber } from "@/models/Subscriber";
 import { BlogPost, blogPosts } from "@/data/blog";
 import { Project as StaticProject } from "@/data/projects";
 import { Service as StaticService } from "@/data/services";
 import { jobOpenings, JobOpening } from "@/data/careers";
+import { sendSubscriberNotification } from "./mailer";
 
 // In-memory fallback stores for offline/dev operation without MongoDB (starts completely empty)
 const inMemoryContacts: Array<{
@@ -22,6 +24,16 @@ const inMemoryContacts: Array<{
   details: string;
   status: "new" | "reviewed" | "contacted" | "archived";
   createdAt: string;
+}> = [];
+
+const inMemorySubscribers: Array<{
+  _id: string;
+  email: string;
+  source: string;
+  status: "active" | "unsubscribed";
+  notifiedAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
 }> = [];
 
 const inMemoryCareerApplications: Array<{
@@ -307,6 +319,135 @@ export async function createContactInDb(payload: {
   };
   inMemoryContacts.unshift(fallbackItem);
   return { success: true, data: fallbackItem, source: "fallback" };
+}
+
+// ==================== NEWSLETTER SUBSCRIBER SERVICE ====================
+export async function createSubscriberInDb(payload: { email: string; source?: string }) {
+  const email = payload.email.trim().toLowerCase();
+  const source = payload.source || "footer_newsletter";
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const existing = await Subscriber.findOne({
+        email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+      });
+
+      if (existing) {
+        return {
+          success: true,
+          isNew: false,
+          alreadySubscribed: true,
+          data: existing,
+          message: "You are already subscribed to our updates!",
+        };
+      }
+
+      const newSubscriber = await Subscriber.create({
+        email,
+        source,
+        status: "active",
+        notifiedAdmin: true,
+      });
+
+      // Send email alert to vyomaisolutions@gmail.com
+      sendSubscriberNotification({
+        email,
+        source,
+        subscribedAt: newSubscriber.createdAt,
+      }).catch((e) => console.warn("[DbService] Notification trigger error:", e));
+
+      return {
+        success: true,
+        isNew: true,
+        data: newSubscriber,
+        message: "Thank you for subscribing to our updates!",
+      };
+    } catch (err: unknown) {
+      console.warn("[DbService] Error creating subscriber in MongoDB:", err);
+    }
+  }
+
+  // In-memory fallback
+  const duplicate = inMemorySubscribers.find((s) => s.email.toLowerCase() === email);
+  if (duplicate) {
+    return {
+      success: true,
+      isNew: false,
+      alreadySubscribed: true,
+      data: duplicate,
+      message: "You are already subscribed to our updates!",
+    };
+  }
+
+  const fallbackSubscriber = {
+    _id: "sub-" + Date.now(),
+    email,
+    source,
+    status: "active" as const,
+    notifiedAdmin: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  inMemorySubscribers.unshift(fallbackSubscriber);
+
+  // Send email alert to vyomaisolutions@gmail.com
+  sendSubscriberNotification({
+    email,
+    source,
+    subscribedAt: fallbackSubscriber.createdAt,
+  }).catch((e) => console.warn("[DbService] Fallback notification trigger error:", e));
+
+  return {
+    success: true,
+    isNew: true,
+    data: fallbackSubscriber,
+    message: "Thank you for subscribing to our updates!",
+  };
+}
+
+export async function getSubscribersFromDb(query: { search?: string } = {}) {
+  const conn = await connectToDatabase();
+  let mongoSubscribers: unknown[] = [];
+  if (conn) {
+    try {
+      const filter: Record<string, unknown> = {};
+      if (query.search) {
+        filter.email = { $regex: query.search, $options: "i" };
+      }
+      mongoSubscribers = await Subscriber.find(filter).sort({ createdAt: -1 }).lean();
+    } catch (err) {
+      console.warn("[DbService] Error fetching subscribers from MongoDB:", err);
+    }
+  }
+
+  const combined = [...mongoSubscribers] as Array<{ _id: unknown; createdAt?: string; email: string }>;
+  const existingIds = new Set(combined.map((s) => String(s._id)));
+  for (const inMem of inMemorySubscribers) {
+    if (!existingIds.has(String(inMem._id))) {
+      if (!query.search || inMem.email.toLowerCase().includes(query.search.toLowerCase())) {
+        combined.push(inMem);
+      }
+    }
+  }
+  combined.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+  return { data: combined, count: combined.length, source: conn ? "mongodb" : "fallback" };
+}
+
+export async function deleteSubscriberFromDb(id: string) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      await Subscriber.findByIdAndDelete(id);
+    } catch (err) {
+      console.warn("[DbService] Error deleting subscriber from MongoDB:", err);
+    }
+  }
+  const idx = inMemorySubscribers.findIndex((s) => String(s._id) === id);
+  if (idx !== -1) inMemorySubscribers.splice(idx, 1);
+
+  return { success: true };
 }
 
 // ==================== CAREER APPLICATION SERVICE ====================
@@ -781,6 +922,51 @@ export const DEFAULT_PAGE_SEO: Record<string, PageSeoConfig> = {
     keywords: "Contact VyomAI, Technical Consultation, AI Architecture Advisory, Engineering Inquiries, Project Discovery",
     canonicalUrl: "https://vyomai.com/contact",
   },
+  "privacy-policy": {
+    pageId: "privacy-policy",
+    pageName: "Privacy Policy",
+    metaTitle: "Privacy Policy — VyomAI | Data Security & AI Governance",
+    metaDescription: "Read VyomAI's comprehensive privacy policy, enterprise data protection standards, strict AI model training confidentiality, and user rights.",
+    metaImage: "/images/logo.jpg",
+    keywords: "Privacy Policy, Data Protection, AI Confidentiality, Enterprise Security, GDPR, VyomAI Privacy",
+    canonicalUrl: "https://vyomai.com/privacy-policy",
+  },
+  privacy: {
+    pageId: "privacy",
+    pageName: "Privacy Policy",
+    metaTitle: "Privacy Policy — VyomAI | Data Security & AI Governance",
+    metaDescription: "Read VyomAI's comprehensive privacy policy, enterprise data protection standards, strict AI model training confidentiality, and user rights.",
+    metaImage: "/images/logo.jpg",
+    keywords: "Privacy Policy, Data Protection, AI Confidentiality, Enterprise Security, GDPR, VyomAI Privacy",
+    canonicalUrl: "https://vyomai.com/privacy-policy",
+  },
+  "terms-conditions": {
+    pageId: "terms-conditions",
+    pageName: "Terms & Conditions",
+    metaTitle: "Terms & Conditions — VyomAI | Enterprise Service Agreement",
+    metaDescription: "Review the terms and conditions governing VyomAI software engineering services, AI solutions, intellectual property ownership, and service level agreements.",
+    metaImage: "/images/logo.jpg",
+    keywords: "Terms and Conditions, Terms of Service, Enterprise Software Agreement, AI SLA, VyomAI Legal",
+    canonicalUrl: "https://vyomai.com/terms-conditions",
+  },
+  terms: {
+    pageId: "terms",
+    pageName: "Terms & Conditions",
+    metaTitle: "Terms & Conditions — VyomAI | Enterprise Service Agreement",
+    metaDescription: "Review the terms and conditions governing VyomAI software engineering services, AI solutions, intellectual property ownership, and service level agreements.",
+    metaImage: "/images/logo.jpg",
+    keywords: "Terms and Conditions, Terms of Service, Enterprise Software Agreement, AI SLA, VyomAI Legal",
+    canonicalUrl: "https://vyomai.com/terms-conditions",
+  },
+  gdpr: {
+    pageId: "gdpr",
+    pageName: "GDPR Compliance",
+    metaTitle: "GDPR Compliance & Data Rights Portal — VyomAI",
+    metaDescription: "Learn how VyomAI complies with EU General Data Protection Regulation (GDPR), manages data subject requests, data processing agreements, and cloud sovereignty.",
+    metaImage: "/images/logo.jpg",
+    keywords: "GDPR Compliance, EU Data Protection, Data Subject Rights, DPA, Data Controller, VyomAI GDPR",
+    canonicalUrl: "https://vyomai.com/gdpr",
+  },
 };
 
 export async function getPageSeoFromDb(pageId: string): Promise<PageSeoConfig> {
@@ -901,4 +1087,6 @@ export async function upsertPageSeoInDb(
 
   return { success: true, data: DEFAULT_PAGE_SEO[normId], source: "fallback" };
 }
+
+
 

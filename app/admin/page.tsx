@@ -40,9 +40,23 @@ import {
   Globe,
   Phone,
   Paperclip,
+  Users,
+  Copy,
+  Download,
 } from "lucide-react";
 
-type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "contact" | "careers" | "database" | "seo";
+type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "contact" | "careers" | "subscribers" | "database" | "seo";
+
+interface SubscriberItem {
+  _id: string;
+  email: string;
+  source?: string;
+  status: "active" | "unsubscribed";
+  notifiedAdmin?: boolean;
+  ipAddress?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 interface CareerApplicationItem {
   _id: string;
@@ -193,6 +207,7 @@ export default function AdminDashboardPage() {
     totalViews: 2450,
     applications: 0,
     newApplications: 0,
+    subscribers: 0,
   });
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -200,12 +215,15 @@ export default function AdminDashboardPage() {
   const [contacts, setContacts] = useState<ContactItem[]>([]);
   const [careerApplications, setCareerApplications] = useState<CareerApplicationItem[]>([]);
   const [jobOpeningsList, setJobOpeningsList] = useState<JobOpeningItem[]>([]);
+  const [subscribers, setSubscribers] = useState<SubscriberItem[]>([]);
   const [careerSectionView, setCareerSectionView] = useState<"applications" | "jobs">("applications");
 
   // Search and filter
   const [searchQuery, setSearchQuery] = useState("");
   const [contactStatusFilter, setContactStatusFilter] = useState<string>("all");
   const [careerStatusFilter, setCareerStatusFilter] = useState<string>("all");
+  const [subscriberStatusFilter, setSubscriberStatusFilter] = useState<string>("all");
+  const [isDeletingSubscriber, setIsDeletingSubscriber] = useState<string | null>(null);
 
   // Modal states
   const [blogModalOpen, setBlogModalOpen] = useState(false);
@@ -400,6 +418,16 @@ export default function AdminDashboardPage() {
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
         setJobOpeningsList(jobsData.data || []);
+      }
+
+      // 5d. Newsletter Subscribers
+      const subRes = await fetch("/api/newsletter");
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        setSubscribers(subData.data || []);
+        if (subData.count !== undefined) {
+          setCounts((prev) => ({ ...prev, subscribers: subData.count }));
+        }
       }
 
       // 6. Page SEO
@@ -1162,6 +1190,70 @@ export default function AdminDashboardPage() {
     );
   });
 
+  const handleDeleteSubscriber = async (id: string, email: string) => {
+    if (!confirm(`Are you sure you want to remove subscriber "${email}"?`)) return;
+    setIsDeletingSubscriber(id);
+    try {
+      const res = await fetch(`/api/newsletter?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSubscribers((prev) => prev.filter((s) => s._id !== id));
+        setCounts((prev) => ({ ...prev, subscribers: Math.max(0, prev.subscribers - 1) }));
+        showToast(`Subscriber ${email} deleted successfully.`, "success");
+      } else {
+        showToast("Failed to delete subscriber.", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting subscriber: " + (err as Error).message, "error");
+    } finally {
+      setIsDeletingSubscriber(null);
+    }
+  };
+
+  const handleCopySubscriberEmail = (email: string) => {
+    navigator.clipboard.writeText(email);
+    showToast(`Copied ${email} to clipboard!`, "info");
+  };
+
+  const handleExportSubscribersCsv = () => {
+    if (subscribers.length === 0) {
+      showToast("No subscribers to export.", "info");
+      return;
+    }
+    const headers = ["Email", "Source", "Status", "Subscribed At (UTC)"];
+    const rows = subscribers.map((s) => [
+      `"${s.email}"`,
+      `"${s.source || "footer_newsletter"}"`,
+      `"${s.status}"`,
+      `"${new Date(s.createdAt).toISOString()}"`,
+    ]);
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `vyomai_subscribers_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`Exported ${subscribers.length} subscribers to CSV!`, "success");
+  };
+
+  const filteredSubscribers = subscribers.filter((sub) => {
+    const s = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !s ||
+      sub.email.toLowerCase().includes(s) ||
+      (sub.source && sub.source.toLowerCase().includes(s));
+    const matchesStatus =
+      subscriberStatusFilter === "all" ||
+      sub.status.toLowerCase() === subscriberStatusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#070b14] flex items-center justify-center">
@@ -1500,6 +1592,23 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
+              onClick={() => { setActiveTab("subscribers"); setSearchQuery(""); }}
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
+                activeTab === "subscribers"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-900"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Users className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>Subscribers</span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold">
+                {subscribers.length}
+              </span>
+            </button>
+
+            <button
               onClick={() => { setActiveTab("database"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "database"
@@ -1593,102 +1702,121 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                 <div
                   onClick={() => setActiveTab("blog")}
-                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                      Blog Articles
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Blog
                     </span>
                     <FileText className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-extrabold text-white">{blogs.length}</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white">{blogs.length}</div>
                   <div className="text-[11px] text-cyan-400/80 font-mono mt-1 flex items-center gap-1">
-                    <span>Manage Publications</span>
+                    <span>Articles</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 <div
                   onClick={() => setActiveTab("portfolio")}
-                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                      Portfolio Projects
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Portfolio
                     </span>
                     <Briefcase className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-extrabold text-white">{projects.length}</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white">{projects.length}</div>
                   <div className="text-[11px] text-sky-400/80 font-mono mt-1 flex items-center gap-1">
-                    <span>Manage Case Studies</span>
+                    <span>Projects</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 <div
                   onClick={() => setActiveTab("services")}
-                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                      Services Catalog
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Services
                     </span>
                     <Layers className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-extrabold text-white">{services.length}</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white">{services.length}</div>
                   <div className="text-[11px] text-blue-400/80 font-mono mt-1 flex items-center gap-1">
-                    <span>Manage Offerings</span>
+                    <span>Offerings</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 <div
                   onClick={() => setActiveTab("contact")}
-                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                      Client Inquiries
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Inquiries
                     </span>
                     <Inbox className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-extrabold text-white flex items-center gap-2">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-1.5">
                     <span>{contacts.length}</span>
                     {counts.newLeads > 0 && (
-                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-bold">
-                        +{counts.newLeads} new
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-bold">
+                        +{counts.newLeads}
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-emerald-400/80 font-mono mt-1 flex items-center gap-1">
-                    <span>Review Inbound Leads</span>
+                    <span>Leads</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
 
                 <div
                   onClick={() => setActiveTab("careers")}
-                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                      Careers / Talent
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Careers
                     </span>
                     <UserCheck className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-extrabold text-white flex items-center gap-2">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-1.5">
                     <span>{careerApplications.length}</span>
                     {counts.newApplications > 0 && (
-                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-purple-500 text-slate-950 font-bold animate-pulse">
-                        +{counts.newApplications} new
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-500 text-slate-950 font-bold animate-pulse">
+                        +{counts.newApplications}
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-purple-400/80 font-mono mt-1 flex items-center gap-1">
-                    <span>Review Candidates</span>
+                    <span>Talent</span>
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setActiveTab("subscribers")}
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Subscribers
+                    </span>
+                    <Users className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-1.5">
+                    <span>{subscribers.length}</span>
+                  </div>
+                  <div className="text-[11px] text-cyan-400/80 font-mono mt-1 flex items-center gap-1">
+                    <span>Mailing List</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -2442,6 +2570,184 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ======================= TAB: NEWSLETTER SUBSCRIBERS ======================= */}
+          {activeTab === "subscribers" && (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                    <Users className="w-6 h-6 text-cyan-400" />
+                    <span>Newsletter Subscribers</span>
+                  </h1>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Manage newsletter subscribers from the website footer. Live alerts are forwarded to{" "}
+                    <span className="text-cyan-300 font-mono font-medium">vyomaisolutions@gmail.com</span>.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  {/* Status Filter */}
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                    {["all", "active", "unsubscribed"].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setSubscriberStatusFilter(st)}
+                        className={`px-3 py-1 rounded-lg capitalize font-mono text-[11px] transition-colors cursor-pointer ${
+                          subscriberStatusFilter === st
+                            ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Export CSV Button */}
+                  <button
+                    onClick={handleExportSubscribersCsv}
+                    className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-400 text-xs font-semibold text-white flex items-center gap-1.5 transition-all cursor-pointer hover:bg-slate-800"
+                  >
+                    <Download className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Export CSV</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Destination alert banner */}
+              <div className="p-3.5 rounded-2xl bg-cyan-950/40 border border-cyan-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                    <Mail className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-white block">Automated Dispatch System</span>
+                    <span className="text-slate-400">
+                      Target notification inbox:{" "}
+                      <span className="text-cyan-300 font-mono font-semibold">vyomaisolutions@gmail.com</span>
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                    Total: <strong className="text-white">{subscribers.length}</strong>
+                  </span>
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300">
+                    Active: <strong className="text-emerald-200">{subscribers.filter(s => s.status === "active").length}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search subscribers by email address or source..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Subscribers Table */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="py-3 px-4">Subscriber Email</th>
+                        <th className="py-3 px-4">Origin / Source</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Admin Alert</th>
+                        <th className="py-3 px-4">Subscribed At</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {filteredSubscribers.map((sub) => (
+                        <tr key={sub._id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-cyan-950/70 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-400">
+                                <Mail className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <span className="font-semibold text-white block">{sub.email}</span>
+                                <span className="text-[10px] text-slate-500 font-mono">ID: {sub._id.slice(0, 10)}...</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
+                            <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
+                              {sub.source || "footer_newsletter"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`text-[9px] font-mono px-2 py-0.5 rounded-full uppercase font-bold ${
+                                sub.status === "active"
+                                  ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
+                                  : "bg-slate-800 text-slate-400 border border-slate-700"
+                              }`}
+                            >
+                              {sub.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px]">
+                            <span className="inline-flex items-center gap-1 text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 text-[10px]">
+                              <Check className="w-3 h-3 text-cyan-400" />
+                              <span>vyomaisolutions@gmail.com</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
+                            {new Date(sub.createdAt).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleCopySubscriberEmail(sub.email)}
+                                className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-cyan-400 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+                                title="Copy email address"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSubscriber(sub._id, sub.email)}
+                                disabled={isDeletingSubscriber === sub._id}
+                                className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-red-500/50 text-slate-400 hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50"
+                                title="Remove subscriber"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {filteredSubscribers.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-16 text-center text-slate-500">
+                            <Users className="w-8 h-8 mx-auto text-slate-600 mb-2" />
+                            <p className="text-xs font-medium text-slate-400">No subscribers found</p>
+                            <p className="text-[11px] text-slate-500 mt-1">
+                              {searchQuery
+                                ? "No subscriber matching your search query."
+                                : "Subscribers who submit their email in the footer will automatically appear here."}
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 

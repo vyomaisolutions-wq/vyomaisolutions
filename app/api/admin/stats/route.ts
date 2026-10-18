@@ -5,6 +5,7 @@ import { Project } from "@/models/Project";
 import { Service } from "@/models/Service";
 import { Contact } from "@/models/Contact";
 import { CareerApplication } from "@/models/CareerApplication";
+import { Subscriber } from "@/models/Subscriber";
 
 export async function GET() {
   const conn = await connectToDatabase();
@@ -19,6 +20,7 @@ export async function GET() {
     totalViews: 0,
     applications: 0,
     newApplications: 0,
+    subscribers: 0,
   };
 
   let recentLeads: unknown[] = [];
@@ -27,7 +29,7 @@ export async function GET() {
 
   if (conn) {
     try {
-      const [blogCount, projCount, servCount, contactCount, newLeadCount, appCount, newAppCount] =
+      const [blogCount, projCount, servCount, contactCount, newLeadCount, appCount, newAppCount, subCount] =
         await Promise.all([
           Blog.countDocuments(),
           Project.countDocuments(),
@@ -36,6 +38,7 @@ export async function GET() {
           Contact.countDocuments({ status: "new" }),
           CareerApplication.countDocuments(),
           CareerApplication.countDocuments({ status: "new" }),
+          Subscriber.countDocuments({ status: "active" }),
         ]);
 
       // Calculate total blog views
@@ -53,6 +56,7 @@ export async function GET() {
         totalViews,
         applications: appCount,
         newApplications: newAppCount,
+        subscribers: subCount,
       };
 
       recentLeads = await Contact.find().sort({ createdAt: -1 }).limit(5).lean();

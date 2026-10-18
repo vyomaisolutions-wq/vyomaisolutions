@@ -43,8 +43,8 @@ export const Navbar: React.FC = () => {
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? "bg-slate-950/85 backdrop-blur-xl border-b border-cyan-500/15 py-3 shadow-lg shadow-black/40"
-            : "bg-transparent py-5"
+            ? "bg-slate-950/90 backdrop-blur-xl border-b border-cyan-500/15 py-2.5 sm:py-3 shadow-lg shadow-black/40"
+            : "bg-transparent py-3.5 sm:py-5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,26 +52,26 @@ export const Navbar: React.FC = () => {
             {/* Left side: Company Logo */}
             <Link
               href="/"
-              className="group flex items-center gap-3 select-none focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-lg p-1"
+              className="group flex items-center gap-2.5 sm:gap-3.5 select-none focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-lg p-1 shrink-0"
               aria-label="VyomAI Homepage"
             >
-              <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full p-0.5 bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 shadow-md shadow-cyan-500/20 group-hover:shadow-cyan-400/40 transition-shadow">
+              <div className="relative w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 shadow-md shadow-cyan-500/25 group-hover:shadow-cyan-400/50 group-hover:scale-105 transition-all duration-300 shrink-0">
                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
                   <Image
                     src="/images/logo.jpg"
                     alt="VyomAI Logo Emblem"
-                    width={44}
-                    height={44}
+                    width={56}
+                    height={56}
                     priority
                     className="w-full h-full object-cover scale-105 group-hover:scale-115 transition-transform duration-300"
                   />
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="font-extrabold text-xl tracking-tight text-white group-hover:text-cyan-200 transition-colors">
+                <span className="font-extrabold text-xl sm:text-2xl md:text-[26px] tracking-tight text-white group-hover:text-cyan-200 transition-colors leading-none">
                   Vyom<span className="text-cyan-400">AI</span>
                 </span>
-                <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 -mt-1 group-hover:text-cyan-300/80 transition-colors">
+                <span className="text-[10px] sm:text-[11px] md:text-xs uppercase font-mono font-bold tracking-[0.22em] text-slate-400 mt-1 group-hover:text-cyan-300/90 transition-colors">
                   Solutions
                 </span>
               </div>

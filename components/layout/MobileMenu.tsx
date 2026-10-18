@@ -95,18 +95,25 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               {/* Header with Logo and Close button */}
               <div className="flex items-center justify-between pb-5 border-b border-slate-800/80">
                 <Link href="/" onClick={onClose} className="flex items-center gap-3">
-                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-cyan-400/50 p-0.5 bg-slate-900 shrink-0">
-                    <Image
-                      src="/images/logo.jpg"
-                      alt="VyomAI Logo"
-                      width={36}
-                      height={36}
-                      className="w-full h-full object-cover rounded-full"
-                    />
+                  <div className="relative w-11 h-11 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 shadow-md shadow-cyan-500/30 shrink-0">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                      <Image
+                        src="/images/logo.jpg"
+                        alt="VyomAI Logo"
+                        width={44}
+                        height={44}
+                        className="w-full h-full object-cover scale-105"
+                      />
+                    </div>
                   </div>
-                  <span className="font-bold text-lg tracking-tight text-white">
-                    Vyom<span className="text-cyan-400">AI</span>
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-xl tracking-tight text-white leading-none">
+                      Vyom<span className="text-cyan-400">AI</span>
+                    </span>
+                    <span className="text-[10px] uppercase font-mono font-bold tracking-[0.2em] text-slate-400 mt-1">
+                      Solutions
+                    </span>
+                  </div>
                 </Link>
 
                 <button
