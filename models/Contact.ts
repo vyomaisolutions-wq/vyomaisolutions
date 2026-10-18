@@ -6,7 +6,6 @@ export interface IContact extends Document {
   phone?: string;
   company?: string;
   service: string;
-  budget?: string;
   details: string;
   status: "new" | "reviewed" | "contacted" | "archived";
   notes?: string;
@@ -21,7 +20,6 @@ const ContactSchema = new Schema<IContact>(
     phone: { type: String, trim: true, default: "" },
     company: { type: String, trim: true, default: "" },
     service: { type: String, default: "General Technical Consultation", trim: true },
-    budget: { type: String, default: "Not Specified", trim: true },
     details: { type: String, default: "Inquiry submitted via web portal", trim: true },
     status: {
       type: String,

@@ -153,9 +153,9 @@ interface ContactItem {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
   company?: string;
   service: string;
-  budget?: string;
   details: string;
   status: "new" | "reviewed" | "contacted" | "archived";
   createdAt: string;
@@ -1127,6 +1127,7 @@ export default function AdminDashboardPage() {
       !s ||
       (c.name && c.name.toLowerCase().includes(s)) ||
       (c.email && c.email.toLowerCase().includes(s)) ||
+      (c.phone && c.phone.toLowerCase().includes(s)) ||
       (c.service && c.service.toLowerCase().includes(s)) ||
       (c.company && c.company.toLowerCase().includes(s)) ||
       (c.details && c.details.toLowerCase().includes(s));
@@ -1992,8 +1993,8 @@ export default function AdminDashboardPage() {
                     <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="py-3 px-4">Client</th>
+                        <th className="py-3 px-4">Mobile / Phone</th>
                         <th className="py-3 px-4">Service Requested</th>
-                        <th className="py-3 px-4">Budget</th>
                         <th className="py-3 px-4">Status</th>
                         <th className="py-3 px-4">Received</th>
                         <th className="py-3 px-4 text-right">Actions</th>
@@ -2015,11 +2016,22 @@ export default function AdminDashboardPage() {
                               </span>
                             </div>
                           </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px]">
+                            {c.phone ? (
+                              <a
+                                href={`tel:${c.phone.replace(/\s+/g, "")}`}
+                                className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1.5 font-medium"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Phone className="w-3 h-3 shrink-0 text-emerald-400" />
+                                <span>{c.phone}</span>
+                              </a>
+                            ) : (
+                              <span className="text-slate-500 italic">Not Provided</span>
+                            )}
+                          </td>
                           <td className="py-3.5 px-4 font-mono text-[11px] text-cyan-300">
                             {c.service}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
-                            {c.budget || "Not Specified"}
                           </td>
                           <td className="py-3.5 px-4">
                             <span
@@ -3965,12 +3977,22 @@ export default function AdminDashboardPage() {
                   <span className="text-slate-200">{viewingContact.company || "Not provided"}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block mb-0.5">Service Requested</span>
-                  <span className="text-cyan-300 font-semibold">{viewingContact.service}</span>
+                  <span className="text-slate-500 block mb-0.5">Mobile / Phone</span>
+                  {viewingContact.phone ? (
+                    <a
+                      href={`tel:${viewingContact.phone.replace(/\s+/g, "")}`}
+                      className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{viewingContact.phone}</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-500 italic">Not provided</span>
+                  )}
                 </div>
                 <div>
-                  <span className="text-slate-500 block mb-0.5">Estimated Budget</span>
-                  <span className="text-slate-200">{viewingContact.budget || "Flexible"}</span>
+                  <span className="text-slate-500 block mb-0.5">Service Requested</span>
+                  <span className="text-cyan-300 font-semibold">{viewingContact.service}</span>
                 </div>
               </div>
 

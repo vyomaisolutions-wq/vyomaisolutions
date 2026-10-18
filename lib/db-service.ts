@@ -16,9 +16,9 @@ const inMemoryContacts: Array<{
   _id: string;
   name: string;
   email: string;
+  phone?: string;
   company?: string;
   service: string;
-  budget?: string;
   details: string;
   status: "new" | "reviewed" | "contacted" | "archived";
   createdAt: string;
@@ -219,7 +219,6 @@ export async function createContactInDb(payload: {
   phone?: string;
   company?: string;
   service?: string;
-  budget?: string;
   details?: string;
 }) {
   const sanitized = {
@@ -228,7 +227,6 @@ export async function createContactInDb(payload: {
     phone: payload.phone ? payload.phone.trim() : "",
     company: payload.company ? payload.company.trim() : "",
     service: payload.service ? payload.service.trim() : "General Technical Consultation",
-    budget: payload.budget ? payload.budget.trim() : "Not Specified",
     details: payload.details ? payload.details.trim() : "Technical inquiry submitted via website.",
     status: "new" as const,
   };

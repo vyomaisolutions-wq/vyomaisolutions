@@ -21,18 +21,63 @@ import { SocialLinks } from "@/components/ui/SocialLinks";
 import { companyInfo } from "@/data/company";
 import { servicesDropdownItems } from "@/data/navigation";
 
+const SERVICE_CATEGORIES = [
+  {
+    group: "Artificial Intelligence & Core ML",
+    options: [
+      "Artificial Intelligence & Machine Learning (AI/ML)",
+      "Generative AI & LLM Systems (Enterprise RAG)",
+      "Autonomous Multi-Agent Swarms & Workflows",
+      "Computer Vision & Deep Learning Analytics",
+      "Natural Language Processing (NLP) & Speech AI",
+      "Predictive Analytics & Forecasting Models",
+    ],
+  },
+  {
+    group: "Engineering & Cloud Platforms",
+    options: [
+      "Custom Enterprise Software Development",
+      "Web Application Development (Next.js / React)",
+      "Mobile App Development (iOS & Android / Flutter)",
+      "Cloud Architecture, Kubernetes & DevOps (FinOps)",
+      "Microservices & High-Concurrency Systems",
+      "Legacy Core Modernization & API Engineering",
+    ],
+  },
+  {
+    group: "Growth, Automation & Design",
+    options: [
+      "Digital Marketing & AI Growth Strategy",
+      "Algorithmic SEO & Attribution Pipelines",
+      "Intelligent Business Process Automation (RPA)",
+      "UI/UX Design Systems & Cognitive Prototyping",
+      "Enterprise Data Engineering & Data Lakehouse",
+      "AI Security, Guardrails & Governance Audit",
+    ],
+  },
+  {
+    group: "Consultation & Architecture",
+    options: [
+      "Principal Technical Discovery & Architecture Review",
+      "Full Stack Overhaul & AI Feasibility Assessment",
+      "Other / Custom Specialized Requirements",
+    ],
+  },
+];
+
 interface FormData {
   name: string;
   email: string;
+  phone: string;
   company: string;
   service: string;
-  budget?: string;
   details: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
+  phone?: string;
   service?: string;
   details?: string;
 }
@@ -41,6 +86,7 @@ export const ContactSection: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
+    phone: "",
     company: "",
     service: "",
     details: "",
@@ -74,6 +120,14 @@ export const ContactSection: React.FC = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errs.email = "Please enter a valid email address.";
     }
+    if (!formData.phone.trim()) {
+      errs.phone = "Mobile / Phone number is required.";
+    } else if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(formData.phone.trim())) {
+      errs.phone = "Please enter a valid mobile number (e.g. +91 98765 43210).";
+    }
+    if (!formData.service) {
+      errs.service = "Please select a service category.";
+    }
     if (!formData.details.trim() || formData.details.trim().length < 2) {
       errs.details = "Please share a brief summary of your project or inquiry.";
     }
@@ -92,6 +146,7 @@ export const ContactSection: React.FC = () => {
       const payload = {
         name: formData.name.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim(),
         company: formData.company.trim(),
         service: formData.service || "General Technical Consultation",
         details: formData.details.trim(),
@@ -122,6 +177,7 @@ export const ContactSection: React.FC = () => {
     setFormData({
       name: "",
       email: "",
+      phone: "",
       company: "",
       service: "",
       details: "",
@@ -453,8 +509,36 @@ export const ContactSection: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Company & Service Selection */}
+                    {/* Row 2: Mobile / Phone Number & Company */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="min-w-0">
+                        <label
+                          htmlFor="phone"
+                          className="block text-xs font-semibold uppercase font-mono text-slate-300 mb-1.5"
+                        >
+                          Mobile / Phone Number <span className="text-cyan-400">*</span>
+                        </label>
+                        <input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          placeholder="+91 98765 43210"
+                          className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors min-h-[44px] ${
+                            errors.phone
+                              ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                              : "border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                          }`}
+                        />
+                        {errors.phone && (
+                          <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 shrink-0" /> {errors.phone}
+                          </p>
+                        )}
+                      </div>
+
                       <div className="min-w-0">
                         <label
                           htmlFor="company"
@@ -473,40 +557,44 @@ export const ContactSection: React.FC = () => {
                           className="w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors min-h-[44px]"
                         />
                       </div>
+                    </div>
 
-                      <div className="min-w-0">
-                        <label
-                          htmlFor="service"
-                          className="block text-xs font-semibold uppercase font-mono text-slate-300 mb-1.5"
-                        >
-                          Service Category <span className="text-cyan-400">*</span>
-                        </label>
-                        <select
-                          id="service"
-                          value={formData.service}
-                          onChange={(e) =>
-                            setFormData({ ...formData, service: e.target.value })
-                          }
-                          className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border text-base sm:text-sm text-white focus:outline-none transition-colors min-h-[44px] ${
-                            errors.service
-                              ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
-                              : "border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
-                          }`}
-                        >
-                          <option value="">Select Service Area...</option>
-                          {servicesDropdownItems.map((s) => (
-                            <option key={s.id} value={s.title}>
-                              {s.title}
-                            </option>
-                          ))}
-                          <option value="Full Architecture Overhaul">Full Architecture Overhaul</option>
-                        </select>
-                        {errors.service && (
-                          <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 shrink-0" /> {errors.service}
-                          </p>
-                        )}
-                      </div>
+                    {/* Row 3: Service Category Selection */}
+                    <div className="min-w-0">
+                      <label
+                        htmlFor="service"
+                        className="block text-xs font-semibold uppercase font-mono text-slate-300 mb-1.5"
+                      >
+                        Architecture / Service Category <span className="text-cyan-400">*</span>
+                      </label>
+                      <select
+                        id="service"
+                        value={formData.service}
+                        onChange={(e) =>
+                          setFormData({ ...formData, service: e.target.value })
+                        }
+                        className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border text-base sm:text-sm text-white focus:outline-none transition-colors min-h-[44px] cursor-pointer ${
+                          errors.service
+                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            : "border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                        }`}
+                      >
+                        <option value="">Select Service Area / Category...</option>
+                        {SERVICE_CATEGORIES.map((cat) => (
+                          <optgroup key={cat.group} label={cat.group} className="bg-slate-900 text-cyan-300 font-semibold font-sans">
+                            {cat.options.map((opt) => (
+                              <option key={opt} value={opt} className="bg-slate-950 text-slate-200 font-normal">
+                                {opt}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      {errors.service && (
+                        <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" /> {errors.service}
+                        </p>
+                      )}
                     </div>
 
 

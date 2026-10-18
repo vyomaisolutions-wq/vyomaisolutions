@@ -12,11 +12,10 @@ export async function POST(req: NextRequest) {
 
     const name = (body.name || body.fullName || "").trim();
     const email = (body.email || "").trim();
-    const details = (body.details || body.message || body.projectGoals || "").trim();
-    const service = (body.service || "General Technical Consultation").trim();
+    const phone = (body.phone || body.mobile || body.phoneNumber || "").trim() || undefined;
     const company = (body.company || "").trim() || undefined;
-    const phone = (body.phone || "").trim() || undefined;
-    const budget = (body.budget || "Not Specified").trim();
+    const service = (body.service || "General Technical Consultation").trim();
+    const details = (body.details || body.message || body.projectGoals || "").trim();
 
     if (!name || !email) {
       return NextResponse.json(
@@ -31,7 +30,6 @@ export async function POST(req: NextRequest) {
       phone,
       company,
       service: service || "General Technical Consultation",
-      budget: budget || "Not Specified",
       details: details || "Technical inquiry submitted via website.",
     });
 
