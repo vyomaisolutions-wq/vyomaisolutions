@@ -63,7 +63,7 @@ export const EvolutionFlipCard: React.FC<EvolutionFlipCardProps> = ({
       >
         {/* ================= FRONT FACE: Creative Chronology Design ================= */}
         <div
-          className={`absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(0deg)] bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950/95 border border-white/10 ${borderGlow} shadow-[0_12px_35px_rgba(0,0,0,0.55),0_0_25px_rgba(0,240,255,0.06)] transition-all duration-500 p-6 sm:p-7 flex flex-col justify-between overflow-hidden`}
+          className={`absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(0deg)] bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950/95 border border-cyan-400/50 ${borderGlow} shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] transition-all duration-500 p-6 sm:p-7 flex flex-col justify-between overflow-hidden`}
         >
           {/* Top Neon Circuit Track Accent */}
           <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${accentBar}`} />

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getPageSeoFromDb } from "@/lib/db-service";
+import { getPageSeoFromDb, getProjectsFromDb } from "@/lib/db-service";
 import { constructMetadata } from "@/lib/seo-helper";
 import { PortfolioPageClient } from "@/components/portfolio/PortfolioPageClient";
+
 export async function generateMetadata(): Promise<Metadata> {
   "use cache";
   const seo = await getPageSeoFromDb("portfolio");
@@ -14,6 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function PortfolioPage() {
-  return <PortfolioPageClient />;
+export default async function PortfolioPage() {
+  "use cache";
+  const { data: projects } = await getProjectsFromDb();
+  const initialProjects = JSON.parse(JSON.stringify(projects || []));
+
+  return <PortfolioPageClient initialProjects={initialProjects} />;
 }

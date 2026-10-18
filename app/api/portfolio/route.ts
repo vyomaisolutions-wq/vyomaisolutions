@@ -8,7 +8,11 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get("category") || undefined;
 
   const result = await getProjectsFromDb(category);
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+    },
+  });
 }
 
 export async function POST(req: NextRequest) {

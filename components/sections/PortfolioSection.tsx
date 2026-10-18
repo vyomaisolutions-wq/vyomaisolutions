@@ -11,21 +11,27 @@ import { Button } from "@/components/ui/Button";
 
 const categories = ["All", "AI & ML", "Web & Cloud", "Enterprise Systems", "Mobile"] as const;
 
-export const PortfolioSection: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+interface PortfolioSectionProps {
+  initialProjects?: Project[];
+}
+
+export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProjects }) => {
+  const [projects, setProjects] = useState<Project[]>(initialProjects || []);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
-    fetch("/api/portfolio")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.data && Array.isArray(data.data)) {
-          setProjects(data.data);
-        }
-      })
-      .catch((err) => console.warn("Dynamic portfolio fetch error:", err));
-  }, []);
+    if (!initialProjects || initialProjects.length === 0) {
+      fetch("/api/portfolio")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.data && Array.isArray(data.data)) {
+            setProjects(data.data);
+          }
+        })
+        .catch((err) => console.warn("Dynamic portfolio fetch error:", err));
+    }
+  }, [initialProjects]);
 
   const filteredProjects =
     activeCategory === "All"

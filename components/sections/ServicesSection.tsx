@@ -7,19 +7,25 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-export const ServicesSection: React.FC = () => {
-  const [services, setServices] = useState<any[]>([]);
+interface ServicesSectionProps {
+  initialServices?: any[];
+}
+
+export const ServicesSection: React.FC<ServicesSectionProps> = ({ initialServices }) => {
+  const [services, setServices] = useState<any[]>(initialServices || []);
 
   useEffect(() => {
-    fetch("/api/services")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.data && Array.isArray(data.data)) {
-          setServices(data.data);
-        }
-      })
-      .catch((err) => console.warn("Dynamic services fetch error:", err));
-  }, []);
+    if (!initialServices || initialServices.length === 0) {
+      fetch("/api/services")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.data && Array.isArray(data.data)) {
+            setServices(data.data);
+          }
+        })
+        .catch((err) => console.warn("Dynamic services fetch error:", err));
+    }
+  }, [initialServices]);
 
   return (
     <section id="services" className="relative py-24 sm:py-32 bg-slate-950 overflow-hidden">

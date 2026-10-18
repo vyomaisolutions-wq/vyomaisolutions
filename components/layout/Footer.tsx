@@ -83,7 +83,7 @@ export const Footer: React.FC = () => {
           {/* Location */}
           <div className="flex flex-col items-center">
             <a
-              href="https://www.google.com/maps/search/?api=1&query=JFFH%2BG2F%2C+Grand+Trunk+Rd%2C+near+Bisrakh+Mod+Police+Chowki%2C+Lal+Kuan%2C+Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009"
+              href="https://www.google.com/maps/search/?api=1&query=Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View VyomAI location on Google Maps"
@@ -92,7 +92,7 @@ export const Footer: React.FC = () => {
               <MapPin className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
             </a>
             <a
-              href="https://www.google.com/maps/search/?api=1&query=JFFH%2BG2F%2C+Grand+Trunk+Rd%2C+near+Bisrakh+Mod+Police+Chowki%2C+Lal+Kuan%2C+Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009"
+              href="https://www.google.com/maps/search/?api=1&query=Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs sm:text-sm font-medium text-slate-200 hover:text-cyan-400 transition-colors max-w-sm leading-relaxed text-center underline-offset-2 hover:underline"

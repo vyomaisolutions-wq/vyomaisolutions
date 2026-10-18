@@ -35,17 +35,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
+export async function generateStaticParams() {
+  const { data: services } = await getServicesFromDb();
+  const list = services && services.length > 0 ? services : servicesData;
+  return list.map((s: any) => ({
+    slug: s.slug || s.id,
+  }));
+}
+
 export default async function ServiceDetailPage({ params }: PageProps) {
+  "use cache";
   const { slug } = await params;
-  const { data: service } = await getServiceBySlugFromDb(slug);
+  const [{ data: service }, { data: allServices }] = await Promise.all([
+    getServiceBySlugFromDb(slug),
+    getServicesFromDb(),
+  ]);
 
   if (!service) {
     notFound();
   }
 
-  const { data: allServices } = await getServicesFromDb();
   const currentKey = service.slug || ((service as { id?: string }).id);
-  const otherServices = (allServices as Service[]).filter(
+  const otherServices = ((allServices || []) as Service[]).filter(
     (s) => (s.slug || s.id) !== currentKey
   );
 

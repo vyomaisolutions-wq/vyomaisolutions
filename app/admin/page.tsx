@@ -38,9 +38,47 @@ import {
   UserCheck,
   Upload,
   Globe,
+  Phone,
+  Paperclip,
 } from "lucide-react";
 
-type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "contact" | "database" | "seo";
+type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "contact" | "careers" | "database" | "seo";
+
+interface CareerApplicationItem {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  experienceYears?: string;
+  portfolioUrl?: string;
+  resumeFileName?: string;
+  pitch?: string;
+  status: "new" | "reviewed" | "shortlisted" | "contacted" | "rejected";
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface JobOpeningItem {
+  _id?: string;
+  id?: string;
+  slug: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  experience: string;
+  compensation: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  tags: string[];
+  featured?: boolean;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface PageSeoItem {
   _id?: string;
@@ -153,15 +191,21 @@ export default function AdminDashboardPage() {
     contacts: 0,
     newLeads: 0,
     totalViews: 2450,
+    applications: 0,
+    newApplications: 0,
   });
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [contacts, setContacts] = useState<ContactItem[]>([]);
+  const [careerApplications, setCareerApplications] = useState<CareerApplicationItem[]>([]);
+  const [jobOpeningsList, setJobOpeningsList] = useState<JobOpeningItem[]>([]);
+  const [careerSectionView, setCareerSectionView] = useState<"applications" | "jobs">("applications");
 
   // Search and filter
   const [searchQuery, setSearchQuery] = useState("");
   const [contactStatusFilter, setContactStatusFilter] = useState<string>("all");
+  const [careerStatusFilter, setCareerStatusFilter] = useState<string>("all");
 
   // Modal states
   const [blogModalOpen, setBlogModalOpen] = useState(false);
@@ -170,7 +214,29 @@ export default function AdminDashboardPage() {
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [jobModalOpen, setJobModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobOpeningItem | null>(null);
   const [viewingContact, setViewingContact] = useState<ContactItem | null>(null);
+  const [viewingApplication, setViewingApplication] = useState<CareerApplicationItem | null>(null);
+  const [applicationNotesInput, setApplicationNotesInput] = useState<string>("");
+  const [isUpdatingApplicationStatus, setIsUpdatingApplicationStatus] = useState<boolean>(false);
+
+  // Job Opening form buffer
+  const [jobForm, setJobForm] = useState({
+    title: "",
+    slug: "",
+    department: "AI Research & Systems",
+    location: "Remote (Global) / Bangalore",
+    type: "Full-Time",
+    experience: "3-5 Years",
+    compensation: "$120,000 – $180,000 + Equity",
+    description: "",
+    responsibilities: "",
+    requirements: "",
+    tags: "AI, PyTorch, Deep Learning",
+    featured: false,
+    active: true,
+  });
 
   // Form buffers
   const [blogForm, setBlogForm] = useState({
@@ -320,6 +386,20 @@ export default function AdminDashboardPage() {
       if (contactRes.ok) {
         const contactData = await contactRes.json();
         setContacts(contactData.data || []);
+      }
+
+      // 5b. Career Applications
+      const careerRes = await fetch("/api/careers/apply");
+      if (careerRes.ok) {
+        const careerData = await careerRes.json();
+        setCareerApplications(careerData.data || []);
+      }
+
+      // 5c. Job Openings
+      const jobsRes = await fetch("/api/careers/jobs");
+      if (jobsRes.ok) {
+        const jobsData = await jobsRes.json();
+        setJobOpeningsList(jobsData.data || []);
       }
 
       // 6. Page SEO
@@ -862,6 +942,168 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Career Application status and delete handlers
+  const handleUpdateApplicationStatus = async (
+    id: string,
+    status: CareerApplicationItem["status"],
+    notes?: string
+  ) => {
+    setIsUpdatingApplicationStatus(true);
+    try {
+      const res = await fetch(`/api/careers/applications/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, notes }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Application marked as ${status}`);
+        if (viewingApplication && viewingApplication._id === id) {
+          setViewingApplication((prev) =>
+            prev ? { ...prev, status, notes: notes !== undefined ? notes : prev.notes } : null
+          );
+        }
+        fetchData();
+      } else {
+        showToast(data.error || "Failed to update application", "error");
+      }
+    } catch (err) {
+      showToast("Error updating application: " + (err as Error).message, "error");
+    } finally {
+      setIsUpdatingApplicationStatus(false);
+    }
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    if (!confirm("Permanently delete this career application?")) return;
+    try {
+      const res = await fetch(`/api/careers/applications/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Application deleted");
+        setViewingApplication(null);
+        fetchData();
+      } else {
+        showToast("Failed to delete application", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting application: " + (err as Error).message, "error");
+    }
+  };
+
+  const handleSaveApplicationNotes = async () => {
+    if (!viewingApplication) return;
+    await handleUpdateApplicationStatus(
+      viewingApplication._id,
+      viewingApplication.status,
+      applicationNotesInput
+    );
+  };
+
+  // Job Opening Handlers
+  const openNewJobModal = () => {
+    setEditingJob(null);
+    setJobForm({
+      title: "",
+      slug: "",
+      department: "AI Research & Systems",
+      location: "Remote (Global) / Bangalore",
+      type: "Full-Time",
+      experience: "3-5 Years",
+      compensation: "$120,000 – $180,000 + Equity",
+      description: "",
+      responsibilities: "",
+      requirements: "",
+      tags: "AI, PyTorch, Deep Learning",
+      featured: false,
+      active: true,
+    });
+    setJobModalOpen(true);
+  };
+
+  const openEditJobModal = (job: JobOpeningItem) => {
+    setEditingJob(job);
+    setJobForm({
+      title: job.title,
+      slug: job.slug,
+      department: job.department,
+      location: job.location,
+      type: job.type,
+      experience: job.experience,
+      compensation: job.compensation,
+      description: job.description,
+      responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities.join("\n") : "",
+      requirements: Array.isArray(job.requirements) ? job.requirements.join("\n") : "",
+      tags: Array.isArray(job.tags) ? job.tags.join(", ") : "",
+      featured: !!job.featured,
+      active: job.active !== false,
+    });
+    setJobModalOpen(true);
+  };
+
+  const handleSaveJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!jobForm.title.trim() || !jobForm.description.trim()) {
+      showToast("Job title and description are required.", "error");
+      return;
+    }
+
+    try {
+      const isEditing = !!editingJob;
+      const targetId = editingJob ? (editingJob._id || editingJob.slug) : "";
+      const url = isEditing ? `/api/careers/jobs/${targetId}` : "/api/careers/jobs";
+      const method = isEditing ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jobForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(isEditing ? "Job position updated!" : "New job position published!", "success");
+        setJobModalOpen(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Failed to save job opening", "error");
+      }
+    } catch (err) {
+      showToast("Error saving job: " + (err as Error).message, "error");
+    }
+  };
+
+  const handleToggleJobActive = async (job: JobOpeningItem) => {
+    const targetId = job._id || job.slug;
+    try {
+      const res = await fetch(`/api/careers/jobs/${targetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !job.active }),
+      });
+      if (res.ok) {
+        showToast(`Job ${!job.active ? "activated" : "deactivated"} successfully!`);
+        fetchData();
+      }
+    } catch (err) {
+      showToast("Error updating job: " + (err as Error).message, "error");
+    }
+  };
+
+  const handleDeleteJob = async (job: JobOpeningItem) => {
+    if (!confirm(`Permanently delete job opening "${job.title}"?`)) return;
+    const targetId = job._id || job.slug;
+    try {
+      const res = await fetch(`/api/careers/jobs/${targetId}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Job opening deleted successfully!");
+        fetchData();
+      } else {
+        showToast("Failed to delete job", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting job: " + (err as Error).message, "error");
+    }
+  };
+
   // Filtered lists
   const filteredBlogs = blogs.filter(
     (b) =>
@@ -880,13 +1122,43 @@ export default function AdminDashboardPage() {
   );
 
   const filteredContacts = contacts.filter((c) => {
+    const s = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (c.company && c.company.toLowerCase().includes(searchQuery.toLowerCase()));
+      !s ||
+      (c.name && c.name.toLowerCase().includes(s)) ||
+      (c.email && c.email.toLowerCase().includes(s)) ||
+      (c.service && c.service.toLowerCase().includes(s)) ||
+      (c.company && c.company.toLowerCase().includes(s)) ||
+      (c.details && c.details.toLowerCase().includes(s));
     const matchesStatus =
-      contactStatusFilter === "all" || c.status === contactStatusFilter;
+      contactStatusFilter === "all" ||
+      (c.status && c.status.toLowerCase() === contactStatusFilter.toLowerCase());
     return matchesSearch && matchesStatus;
+  });
+
+  const filteredApplications = careerApplications.filter((a) => {
+    const s = searchQuery.toLowerCase();
+    const matchesSearch =
+      !s ||
+      a.name.toLowerCase().includes(s) ||
+      a.email.toLowerCase().includes(s) ||
+      a.role.toLowerCase().includes(s) ||
+      (a.phone && a.phone.toLowerCase().includes(s));
+    const matchesStatus =
+      careerStatusFilter === "all" || a.status === careerStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredJobOpenings = jobOpeningsList.filter((j) => {
+    const s = searchQuery.toLowerCase().trim();
+    return (
+      !s ||
+      j.title.toLowerCase().includes(s) ||
+      j.department.toLowerCase().includes(s) ||
+      j.location.toLowerCase().includes(s) ||
+      j.description.toLowerCase().includes(s) ||
+      (j.tags && j.tags.some((t) => t.toLowerCase().includes(s)))
+    );
   });
 
   if (authLoading) {
@@ -1204,6 +1476,29 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
+              onClick={() => { setActiveTab("careers"); setSearchQuery(""); }}
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
+                activeTab === "careers"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-900"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <UserCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>Careers / Applications</span>
+              </div>
+              {counts.newApplications > 0 ? (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500 text-slate-950 font-bold animate-pulse">
+                  {counts.newApplications} new
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                  {careerApplications.length}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => { setActiveTab("database"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "database"
@@ -1297,7 +1592,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div
                   onClick={() => setActiveTab("blog")}
                   className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
@@ -1369,6 +1664,30 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="text-[11px] text-emerald-400/80 font-mono mt-1 flex items-center gap-1">
                     <span>Review Inbound Leads</span>
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setActiveTab("careers")}
+                  className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+                      Careers / Talent
+                    </span>
+                    <UserCheck className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="text-3xl font-extrabold text-white flex items-center gap-2">
+                    <span>{careerApplications.length}</span>
+                    {counts.newApplications > 0 && (
+                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-purple-500 text-slate-950 font-bold animate-pulse">
+                        +{counts.newApplications} new
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-purple-400/80 font-mono mt-1 flex items-center gap-1">
+                    <span>Review Candidates</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -1749,6 +2068,368 @@ export default function AdminDashboardPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ======================= TAB: CAREERS & JOB POSITIONS ======================= */}
+          {activeTab === "careers" && (
+            <div className="space-y-6">
+              {/* Header and Sub-tab Switcher */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white tracking-tight">Careers &amp; Engineering Hiring</h1>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Manage live job positions published on the Careers page and review candidate applications.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {/* Sub-tab Switcher */}
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+                    <button
+                      onClick={() => setCareerSectionView("applications")}
+                      className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                        careerSectionView === "applications"
+                          ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Applications ({careerApplications.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setCareerSectionView("jobs")}
+                      className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                        careerSectionView === "jobs"
+                          ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Briefcase className="w-3.5 h-3.5" />
+                      <span>Open Positions ({jobOpeningsList.length})</span>
+                    </button>
+                  </div>
+
+                  {careerSectionView === "jobs" && (
+                    <button
+                      onClick={openNewJobModal}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Post New Position</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* VIEW 1: CANDIDATE APPLICATIONS */}
+              {careerSectionView === "applications" && (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                      {["all", "new", "reviewed", "shortlisted", "contacted", "rejected"].map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => setCareerStatusFilter(st)}
+                          className={`px-3 py-1 rounded-lg capitalize font-mono text-[11px] transition-colors cursor-pointer ${
+                            careerStatusFilter === st
+                              ? "bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-semibold"
+                              : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
+
+                    <span className="text-xs font-mono text-slate-400">
+                      Showing {filteredApplications.length} of {careerApplications.length} applications
+                    </span>
+                  </div>
+
+                  {/* Search Bar for Applications */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search applicants by name, email, role, or phone..."
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  {/* Applications Table */}
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
+                          <tr>
+                            <th className="py-3 px-4">Candidate</th>
+                            <th className="py-3 px-4">Target Role &amp; Exp</th>
+                            <th className="py-3 px-4">Links / Portfolio</th>
+                            <th className="py-3 px-4">Resume / CV</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4">Submitted</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                          {filteredApplications.map((app) => (
+                            <tr
+                              key={app._id}
+                              className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                              onClick={() => {
+                                setViewingApplication(app);
+                                setApplicationNotesInput(app.notes || "");
+                              }}
+                            >
+                              <td className="py-3.5 px-4">
+                                <div>
+                                  <span className="font-bold text-white block">{app.name}</span>
+                                  <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                                    <Mail className="w-3 h-3 text-slate-500 shrink-0" />
+                                    <span>{app.email}</span>
+                                  </span>
+                                  {app.phone && (
+                                    <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5">
+                                      <Phone className="w-3 h-3 text-slate-600 shrink-0" />
+                                      <span>{app.phone}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3.5 px-4">
+                                <div className="space-y-1">
+                                  <span className="font-medium text-cyan-300 block font-mono text-[11px]">
+                                    {app.role}
+                                  </span>
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-400 inline-block">
+                                    {app.experienceYears || "3-5 Years"}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
+                                {app.portfolioUrl ? (
+                                  <a
+                                    href={app.portfolioUrl.startsWith("http") ? app.portfolioUrl : `https://${app.portfolioUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:text-cyan-200 text-[11px] font-mono transition-colors max-w-[180px] truncate"
+                                  >
+                                    <ExternalLink className="w-3 h-3 shrink-0" />
+                                    <span className="truncate">View Link</span>
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px] font-mono">None</span>
+                                )}
+                              </td>
+
+                              <td className="py-3.5 px-4">
+                                {app.resumeFileName ? (
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-300 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800">
+                                    <Paperclip className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    <span className="max-w-[130px] truncate">{app.resumeFileName}</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px] font-mono">In Portal</span>
+                                )}
+                              </td>
+
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`text-[9px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-semibold ${
+                                    app.status === "new"
+                                      ? "bg-cyan-500 text-slate-950 font-bold"
+                                      : app.status === "shortlisted"
+                                      ? "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                                      : app.status === "contacted"
+                                      ? "bg-purple-950 text-purple-300 border border-purple-500/40"
+                                      : app.status === "reviewed"
+                                      ? "bg-sky-950 text-sky-300 border border-sky-500/40"
+                                      : "bg-red-950/70 text-red-400 border border-red-900/60"
+                                  }`}
+                                >
+                                  {app.status}
+                                </span>
+                              </td>
+
+                              <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                                {new Date(app.createdAt).toLocaleDateString()}
+                              </td>
+
+                              <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setViewingApplication(app);
+                                      setApplicationNotesInput(app.notes || "");
+                                    }}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                                    title="Inspect Application"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteApplication(app._id)}
+                                    className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                                    title="Delete Application"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+
+                          {filteredApplications.length === 0 && (
+                            <tr>
+                              <td colSpan={7} className="py-12 text-center text-slate-500 text-xs">
+                                No career applications found matching the current filter.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VIEW 2: JOB OPENINGS / POSTINGS MANAGEMENT */}
+              {careerSectionView === "jobs" && (
+                <div className="space-y-4">
+                  {/* Search Bar for Jobs */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search jobs by title, department, location, or tag..."
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  {/* Jobs Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredJobOpenings.map((job) => (
+                      <div
+                        key={job.slug || job.id || (job as { _id?: string })._id}
+                        className={`p-5 rounded-2xl border transition-all ${
+                          job.active !== false
+                            ? "bg-slate-900/70 border-slate-800 hover:border-cyan-500/40 shadow-sm"
+                            : "bg-slate-950/60 border-slate-800/50 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/30 uppercase">
+                                {job.department}
+                              </span>
+                              <span
+                                className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                                  job.active !== false
+                                    ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800/60"
+                                    : "bg-slate-800 text-slate-400"
+                                }`}
+                              >
+                                {job.active !== false ? "Active on /careers" : "Hidden / Inactive"}
+                              </span>
+                            </div>
+                            <h3 className="text-base font-bold text-white pt-1">{job.title}</h3>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => openEditJobModal(job)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                              title="Edit Position"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteJob(job)}
+                              className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                              title="Delete Position"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-300 line-clamp-2 mt-2 leading-relaxed font-sans">
+                          {job.description}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400 mt-3 pt-3 border-t border-slate-800/80">
+                          <div>
+                            <span className="text-slate-500 block text-[9px] uppercase">Location &amp; Type</span>
+                            <span className="text-slate-200">{job.location} • {job.type}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block text-[9px] uppercase">Experience / Comp</span>
+                            <span className="text-cyan-300">{job.experience}</span>
+                          </div>
+                        </div>
+
+                        {job.tags && job.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {job.tags.slice(0, 4).map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-400"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-3 pt-2.5 flex items-center justify-between">
+                          <button
+                            onClick={() => handleToggleJobActive(job)}
+                            className={`text-[11px] font-mono px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                              job.active !== false
+                                ? "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                                : "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-950"
+                            }`}
+                          >
+                            {job.active !== false ? "Hide from Career Page" : "Publish to Career Page"}
+                          </button>
+                          <Link
+                            href="/careers#open-positions"
+                            target="_blank"
+                            className="text-[11px] font-mono text-cyan-400 hover:underline flex items-center gap-1"
+                          >
+                            <span>Preview</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+
+                    {filteredJobOpenings.length === 0 && (
+                      <div className="col-span-full py-16 text-center rounded-2xl bg-slate-900/40 border border-slate-800 space-y-3">
+                        <Briefcase className="w-8 h-8 text-slate-500 mx-auto" />
+                        <p className="text-xs text-slate-400">
+                          No job positions found. Click &quot;Post New Position&quot; to publish a role to the Careers page.
+                        </p>
+                        <button
+                          onClick={openNewJobModal}
+                          className="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition-colors cursor-pointer"
+                        >
+                          Post First Job Position
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -3044,6 +3725,210 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* ======================= MODAL: CREATE / EDIT JOB OPENING ======================= */}
+      {jobModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-1">
+                  Careers &amp; Engineering Hiring
+                </span>
+                <h3 className="text-xl font-bold text-white">
+                  {editingJob ? "Edit Job Position" : "Post New Engineering Position"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setJobModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveJob} className="space-y-4 pt-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={jobForm.title}
+                    onChange={(e) => {
+                      const title = e.target.value;
+                      setJobForm((prev) => ({
+                        ...prev,
+                        title,
+                        slug: editingJob ? prev.slug : generateSlug(title),
+                      }));
+                    }}
+                    placeholder="e.g. Lead Distributed Systems Architect"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">URL Slug *</label>
+                  <input
+                    type="text"
+                    required
+                    value={jobForm.slug}
+                    onChange={(e) => setJobForm({ ...jobForm, slug: generateSlug(e.target.value) })}
+                    placeholder="lead-distributed-systems-architect"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Department *</label>
+                  <select
+                    value={jobForm.department}
+                    onChange={(e) => setJobForm({ ...jobForm, department: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="AI Research & Systems">AI Research & Systems</option>
+                    <option value="Distributed Systems">Distributed Systems</option>
+                    <option value="Full-Stack Engineering">Full-Stack Engineering</option>
+                    <option value="MLOps & Security">MLOps & Security</option>
+                    <option value="Product Design">Product Design</option>
+                    <option value="Core Engineering">Core Engineering</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Location</label>
+                  <input
+                    type="text"
+                    value={jobForm.location}
+                    onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
+                    placeholder="e.g. Remote (Global) / Bangalore"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Employment Type</label>
+                  <select
+                    value={jobForm.type}
+                    onChange={(e) => setJobForm({ ...jobForm, type: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  >
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Contract / Research Fellow">Contract / Research Fellow</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Experience Required</label>
+                  <input
+                    type="text"
+                    value={jobForm.experience}
+                    onChange={(e) => setJobForm({ ...jobForm, experience: e.target.value })}
+                    placeholder="e.g. 5+ Years"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-medium">Compensation Package</label>
+                  <input
+                    type="text"
+                    value={jobForm.compensation}
+                    onChange={(e) => setJobForm({ ...jobForm, compensation: e.target.value })}
+                    placeholder="e.g. $140,000 – $200,000 + Top Equity"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-slate-300 font-medium">Short Role Summary / Overview *</label>
+                <textarea
+                  required
+                  rows={2}
+                  value={jobForm.description}
+                  onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
+                  placeholder="High-level overview of the mission, core challenges, and the architectural focus..."
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-slate-300 font-medium flex items-center justify-between">
+                  <span>Key Responsibilities</span>
+                  <span className="text-[10px] font-mono text-cyan-400">One bullet point per line</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={jobForm.responsibilities}
+                  onChange={(e) => setJobForm({ ...jobForm, responsibilities: e.target.value })}
+                  placeholder="Architect multi-tenant RAG pipelines and private foundation model serving clusters&#10;Design formal guardrail engines that enforce schema validation&#10;Collaborate directly with enterprise client CTOs"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-sans leading-relaxed text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-slate-300 font-medium flex items-center justify-between">
+                  <span>Core Requirements</span>
+                  <span className="text-[10px] font-mono text-cyan-400">One bullet point per line</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={jobForm.requirements}
+                  onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
+                  placeholder="5+ years in production systems engineering and applied AI&#10;Deep experience with CUDA, vLLM, TensorRT-LLM&#10;Strong background in distributed training benchmarks"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-sans leading-relaxed text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-slate-300 font-medium">Technology Tags (Comma-separated)</label>
+                <input
+                  type="text"
+                  value={jobForm.tags}
+                  onChange={(e) => setJobForm({ ...jobForm, tags: e.target.value })}
+                  placeholder="PyTorch, CUDA, vLLM, Python, Next.js"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-300 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={jobForm.active}
+                    onChange={(e) => setJobForm({ ...jobForm, active: e.target.checked })}
+                    className="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-800"
+                  />
+                  <span>Publish and show immediately on /careers page</span>
+                </label>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setJobModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
+                >
+                  {editingJob ? "Save Changes" : "Publish Job Opening"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ======================= MODAL: VIEW INQUIRY DETAILS ======================= */}
       {viewingContact && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
@@ -3135,6 +4020,179 @@ export default function AdminDashboardPage() {
                     className="px-3 py-1.5 rounded-xl font-mono text-[11px] bg-red-950/40 border border-red-900/60 text-red-400 hover:bg-red-900/40 transition-colors ml-auto cursor-pointer"
                   >
                     Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================= CAREER APPLICATION DETAILS MODAL ======================= */}
+      {viewingApplication && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-1">
+                  Candidate Job Application
+                </span>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>{viewingApplication.name}</span>
+                  <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300">
+                    {viewingApplication.role}
+                  </span>
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewingApplication(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Profile Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 font-mono text-[11px]">
+                <div>
+                  <span className="text-slate-500 block mb-0.5">Email Address</span>
+                  <a
+                    href={`mailto:${viewingApplication.email}`}
+                    className="text-cyan-400 hover:underline flex items-center gap-1.5"
+                  >
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{viewingApplication.email}</span>
+                  </a>
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block mb-0.5">Phone Number</span>
+                  {viewingApplication.phone ? (
+                    <a
+                      href={`tel:${viewingApplication.phone}`}
+                      className="text-slate-200 hover:text-cyan-300 flex items-center gap-1.5"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{viewingApplication.phone}</span>
+                    </a>
+                  ) : (
+                    <span className="text-slate-500">Not provided</span>
+                  )}
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block mb-0.5">Experience Level</span>
+                  <span className="text-slate-200 font-semibold">{viewingApplication.experienceYears || "3-5 Years"}</span>
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block mb-0.5">Resume / CV Attached</span>
+                  <span className="text-cyan-300 flex items-center gap-1.5">
+                    <Paperclip className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{viewingApplication.resumeFileName || "Uploaded in portal"}</span>
+                  </span>
+                </div>
+
+                {viewingApplication.portfolioUrl && (
+                  <div className="sm:col-span-2 pt-1 border-t border-slate-800/60">
+                    <span className="text-slate-500 block mb-1">Portfolio / Profile Link</span>
+                    <a
+                      href={viewingApplication.portfolioUrl.startsWith("http") ? viewingApplication.portfolioUrl : `https://${viewingApplication.portfolioUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:text-cyan-200 text-xs font-mono transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                      <span className="break-all">{viewingApplication.portfolioUrl}</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Technical Pitch */}
+              <div className="space-y-1.5">
+                <span className="text-slate-400 font-mono text-[11px] block">
+                  Technical Pitch &amp; Systems Highlights:
+                </span>
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 text-xs leading-relaxed whitespace-pre-wrap max-h-56 overflow-y-auto font-sans">
+                  {viewingApplication.pitch || "No pitch statement provided by candidate."}
+                </div>
+              </div>
+
+              {/* Admin Evaluation Notes */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-mono text-[11px] block">
+                    Internal Hiring / Interview Notes:
+                  </span>
+                  <button
+                    onClick={handleSaveApplicationNotes}
+                    disabled={isUpdatingApplicationStatus}
+                    className="px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30 text-[10px] font-mono transition-colors cursor-pointer"
+                  >
+                    Save Notes
+                  </button>
+                </div>
+                <textarea
+                  rows={2}
+                  value={applicationNotesInput}
+                  onChange={(e) => setApplicationNotesInput(e.target.value)}
+                  placeholder="e.g. Cleared round 1 technical screen, impressive distributed training experience..."
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 resize-none font-sans"
+                />
+              </div>
+
+              {/* Pipeline Status Actions */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800">
+                <span className="text-slate-400 font-mono text-[11px] block">Hiring Pipeline Stage:</span>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <button
+                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "reviewed", applicationNotesInput)}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
+                      viewingApplication.status === "reviewed"
+                        ? "bg-sky-950 border-sky-400 text-sky-300 font-bold"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Mark Reviewed
+                  </button>
+                  <button
+                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "shortlisted", applicationNotesInput)}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
+                      viewingApplication.status === "shortlisted"
+                        ? "bg-emerald-950 border-emerald-400 text-emerald-300 font-bold"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Shortlist
+                  </button>
+                  <button
+                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "contacted", applicationNotesInput)}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
+                      viewingApplication.status === "contacted"
+                        ? "bg-purple-950 border-purple-400 text-purple-300 font-bold"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Contacted
+                  </button>
+                  <button
+                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "rejected", applicationNotesInput)}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
+                      viewingApplication.status === "rejected"
+                        ? "bg-red-950 border-red-500 text-red-300 font-bold"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Reject
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteApplication(viewingApplication._id)}
+                    className="px-3 py-1.5 rounded-xl font-mono text-[11px] bg-red-950/40 border border-red-900/60 text-red-400 hover:bg-red-900/40 transition-colors ml-auto cursor-pointer"
+                  >
+                    Delete Application
                   </button>
                 </div>
               </div>

@@ -3,10 +3,13 @@ import { Blog, IBlog } from "@/models/Blog";
 import { Project, IProject } from "@/models/Project";
 import { Service, IService } from "@/models/Service";
 import { Contact, IContact } from "@/models/Contact";
+import { CareerApplication, ICareerApplication } from "@/models/CareerApplication";
+import { Job, IJob } from "@/models/Job";
 import { PageSeo, IPageSeo } from "@/models/PageSeo";
 import { BlogPost } from "@/data/blog";
 import { Project as StaticProject } from "@/data/projects";
 import { Service as StaticService } from "@/data/services";
+import { jobOpenings, JobOpening } from "@/data/careers";
 
 // In-memory fallback stores for offline/dev operation without MongoDB (starts completely empty)
 const inMemoryContacts: Array<{
@@ -21,10 +24,27 @@ const inMemoryContacts: Array<{
   createdAt: string;
 }> = [];
 
+const inMemoryCareerApplications: Array<{
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  experienceYears?: string;
+  portfolioUrl?: string;
+  resumeFileName?: string;
+  pitch?: string;
+  status: "new" | "reviewed" | "shortlisted" | "contacted" | "rejected";
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}> = [];
+
 // In-memory overrides if DB is offline but admin creates data (starts completely empty)
 let inMemoryBlogs: BlogPost[] = [];
 let inMemoryProjects: StaticProject[] = [];
 let inMemoryServices: StaticService[] = [];
+let inMemoryJobs: JobOpening[] = [...jobOpenings];
 
 // ==================== BLOG SERVICE ====================
 export async function getBlogsFromDb(query: { category?: string; search?: string } = {}) {
@@ -172,47 +192,453 @@ export async function getServiceBySlugFromDb(slug: string) {
 // ==================== CONTACT SERVICE ====================
 export async function getContactsFromDb() {
   const conn = await connectToDatabase();
+  let mongoContacts: unknown[] = [];
   if (conn) {
     try {
-      const contacts = await Contact.find({}).sort({ createdAt: -1 }).lean();
-      return { data: contacts, source: "mongodb" };
+      mongoContacts = await Contact.find({}).sort({ createdAt: -1 }).lean();
     } catch (err) {
       console.warn("[DbService] Error fetching contacts from MongoDB:", err);
     }
   }
 
-  return { data: inMemoryContacts, source: "fallback" };
+  // Combine MongoDB contacts with in-memory contacts so inquiries are never lost
+  const combined = [...mongoContacts] as Array<{ _id: unknown }>;
+  const existingIds = new Set(combined.map((c) => String(c._id)));
+  for (const inMem of inMemoryContacts) {
+    if (!existingIds.has(String(inMem._id))) {
+      combined.push(inMem);
+    }
+  }
+
+  return { data: combined, source: conn ? "mongodb" : "fallback" };
 }
 
 export async function createContactInDb(payload: {
   name: string;
   email: string;
+  phone?: string;
   company?: string;
-  service: string;
+  service?: string;
   budget?: string;
-  details: string;
+  details?: string;
 }) {
+  const sanitized = {
+    name: payload.name.trim(),
+    email: payload.email.trim(),
+    phone: payload.phone ? payload.phone.trim() : "",
+    company: payload.company ? payload.company.trim() : "",
+    service: payload.service ? payload.service.trim() : "General Technical Consultation",
+    budget: payload.budget ? payload.budget.trim() : "Not Specified",
+    details: payload.details ? payload.details.trim() : "Technical inquiry submitted via website.",
+    status: "new" as const,
+  };
+
   const conn = await connectToDatabase();
   if (conn) {
     try {
-      const newContact = await Contact.create({
-        ...payload,
-        status: "new",
-      });
+      const newContact = await Contact.create(sanitized);
       return { success: true, data: newContact, source: "mongodb" };
     } catch (err) {
-      console.warn("[DbService] Error inserting contact to MongoDB:", err);
+      console.error("[DbService] Error inserting contact to MongoDB:", err);
     }
   }
 
   const fallbackItem = {
     _id: "inmem-" + Date.now(),
-    ...payload,
-    status: "new" as const,
+    ...sanitized,
     createdAt: new Date().toISOString(),
   };
   inMemoryContacts.unshift(fallbackItem);
   return { success: true, data: fallbackItem, source: "fallback" };
+}
+
+// ==================== CAREER APPLICATION SERVICE ====================
+export async function getCareerApplicationsFromDb(query: { status?: string; search?: string } = {}) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const filter: Record<string, unknown> = {};
+      if (query.status && query.status !== "all" && query.status !== "All") {
+        filter.status = query.status.toLowerCase();
+      }
+      if (query.search) {
+        const s = query.search.trim();
+        filter.$or = [
+          { name: { $regex: s, $options: "i" } },
+          { email: { $regex: s, $options: "i" } },
+          { role: { $regex: s, $options: "i" } },
+          { phone: { $regex: s, $options: "i" } },
+        ];
+      }
+      const applications = await CareerApplication.find(filter).sort({ createdAt: -1 }).lean();
+      return { data: applications, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error fetching career applications from MongoDB:", err);
+    }
+  }
+
+  let list = [...inMemoryCareerApplications];
+  if (query.status && query.status !== "all" && query.status !== "All") {
+    list = list.filter((a) => a.status === query.status?.toLowerCase());
+  }
+  if (query.search) {
+    const s = query.search.toLowerCase();
+    list = list.filter(
+      (a) =>
+        a.name.toLowerCase().includes(s) ||
+        a.email.toLowerCase().includes(s) ||
+        a.role.toLowerCase().includes(s)
+    );
+  }
+  return { data: list, source: "fallback" };
+}
+
+export async function createCareerApplicationInDb(payload: {
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  experienceYears?: string;
+  portfolioUrl?: string;
+  resumeFileName?: string;
+  pitch?: string;
+}) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const app = await CareerApplication.create({
+        ...payload,
+        status: "new",
+      });
+      return { success: true, data: app, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error creating career application in MongoDB:", err);
+    }
+  }
+
+  const fallbackApp = {
+    _id: "inmem-app-" + Date.now(),
+    ...payload,
+    status: "new" as const,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  inMemoryCareerApplications.unshift(fallbackApp);
+  return { success: true, data: fallbackApp, source: "fallback" };
+}
+
+export async function updateCareerApplicationStatusInDb(
+  id: string,
+  status: "new" | "reviewed" | "shortlisted" | "contacted" | "rejected",
+  notes?: string
+) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const updateData: Record<string, unknown> = { status };
+      if (notes !== undefined) updateData.notes = notes;
+      const updated = await CareerApplication.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      ).lean();
+      return { success: true, data: updated, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error updating career application in MongoDB:", err);
+    }
+  }
+
+  const item = inMemoryCareerApplications.find((a) => a._id === id);
+  if (item) {
+    item.status = status;
+    if (notes !== undefined) item.notes = notes;
+    item.updatedAt = new Date().toISOString();
+    return { success: true, data: item, source: "fallback" };
+  }
+  return { success: false, error: "Application not found" };
+}
+
+export async function deleteCareerApplicationFromDb(id: string) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      await CareerApplication.findByIdAndDelete(id);
+      return { success: true, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error deleting career application from MongoDB:", err);
+    }
+  }
+
+  const idx = inMemoryCareerApplications.findIndex((a) => a._id === id);
+  if (idx !== -1) {
+    inMemoryCareerApplications.splice(idx, 1);
+  }
+  return { success: true, source: "fallback" };
+}
+
+// ==================== CAREER JOB OPENINGS SERVICE ====================
+export async function getJobsFromDb(query: { activeOnly?: boolean; department?: string; search?: string } = {}) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const filter: Record<string, unknown> = {};
+      if (query.activeOnly) {
+        filter.active = true;
+      }
+      if (query.department && query.department !== "All" && query.department !== "all") {
+        filter.department = query.department;
+      }
+      if (query.search) {
+        const s = query.search.trim();
+        filter.$or = [
+          { title: { $regex: s, $options: "i" } },
+          { description: { $regex: s, $options: "i" } },
+          { tags: { $in: [new RegExp(s, "i")] } },
+        ];
+      }
+
+      let jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
+
+      // Seed initial job openings to MongoDB if the collection is empty
+      if (jobs.length === 0 && (!query.department || query.department === "All") && !query.search) {
+        const totalCount = await Job.countDocuments();
+        if (totalCount === 0) {
+          const seeded = await Job.insertMany(
+            jobOpenings.map((j) => ({
+              slug: j.slug || j.id,
+              title: j.title,
+              department: j.department,
+              location: j.location,
+              type: j.type,
+              experience: j.experience,
+              compensation: j.compensation,
+              description: j.description,
+              responsibilities: j.responsibilities || [],
+              requirements: j.requirements || [],
+              tags: j.tags || [],
+              featured: !!j.featured,
+              active: true,
+            }))
+          );
+          jobs = seeded.map((doc) => doc.toObject()) as unknown as typeof jobs;
+        }
+      }
+
+      return { data: jobs, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error fetching jobs from MongoDB:", err);
+    }
+  }
+
+  // Fallback to in-memory jobs
+  let list = [...inMemoryJobs];
+  if (query.activeOnly) {
+    list = list.filter((j) => (j as { active?: boolean }).active !== false);
+  }
+  if (query.department && query.department !== "All" && query.department !== "all") {
+    list = list.filter((j) => j.department === query.department);
+  }
+  if (query.search) {
+    const s = query.search.toLowerCase().trim();
+    list = list.filter(
+      (j) =>
+        j.title.toLowerCase().includes(s) ||
+        j.description.toLowerCase().includes(s) ||
+        (j.tags && j.tags.some((t) => t.toLowerCase().includes(s)))
+    );
+  }
+  return { data: list, source: "fallback" };
+}
+
+export async function createJobInDb(payload: {
+  title: string;
+  slug?: string;
+  department: string;
+  location?: string;
+  type?: string;
+  experience?: string;
+  compensation?: string;
+  description: string;
+  responsibilities?: string[] | string;
+  requirements?: string[] | string;
+  tags?: string[] | string;
+  featured?: boolean;
+  active?: boolean;
+}) {
+  const slug = (
+    payload.slug ||
+    payload.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
+  ).trim();
+
+  const parseArray = (input?: string[] | string) => {
+    if (Array.isArray(input)) return input.map((s) => s.trim()).filter(Boolean);
+    if (typeof input === "string") return input.split("\n").map((s) => s.trim()).filter(Boolean);
+    return [];
+  };
+
+  const parseTags = (input?: string[] | string) => {
+    if (Array.isArray(input)) return input.map((s) => s.trim()).filter(Boolean);
+    if (typeof input === "string") return input.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+    return [];
+  };
+
+  const jobDoc = {
+    slug,
+    title: payload.title.trim(),
+    department: payload.department.trim(),
+    location: payload.location?.trim() || "Remote (Global) / Bangalore",
+    type: payload.type?.trim() || "Full-Time",
+    experience: payload.experience?.trim() || "3-5 Years",
+    compensation: payload.compensation?.trim() || "Competitive Market Rate + Equity",
+    description: payload.description.trim(),
+    responsibilities: parseArray(payload.responsibilities),
+    requirements: parseArray(payload.requirements),
+    tags: parseTags(payload.tags),
+    featured: payload.featured ?? false,
+    active: payload.active ?? true,
+  };
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const created = await Job.create(jobDoc);
+      return { success: true, data: created, source: "mongodb" };
+    } catch (err) {
+      console.error("[DbService] Error creating job in MongoDB:", err);
+      return { success: false, error: (err as Error).message };
+    }
+  }
+
+  const fallbackJob = {
+    id: slug,
+    ...jobDoc,
+    _id: "inmem-job-" + Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  } as unknown as JobOpening;
+  inMemoryJobs.unshift(fallbackJob);
+  return { success: true, data: fallbackJob, source: "fallback" };
+}
+
+export async function updateJobInDb(
+  idOrSlug: string,
+  payload: Partial<
+    JobOpening & {
+      responsibilities: string[] | string;
+      requirements: string[] | string;
+      tags: string[] | string;
+      active?: boolean;
+      featured?: boolean;
+    }
+  >
+) {
+  const decoded = decodeURIComponent(idOrSlug).trim();
+
+  const parseArray = (input?: string[] | string) => {
+    if (Array.isArray(input)) return input.map((s) => s.trim()).filter(Boolean);
+    if (typeof input === "string") return input.split("\n").map((s) => s.trim()).filter(Boolean);
+    return undefined;
+  };
+
+  const parseTags = (input?: string[] | string) => {
+    if (Array.isArray(input)) return input.map((s) => s.trim()).filter(Boolean);
+    if (typeof input === "string") return input.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+    return undefined;
+  };
+
+  const updateFields: Record<string, unknown> = {};
+  if (payload.title !== undefined) updateFields.title = payload.title.trim();
+  if (payload.slug !== undefined) updateFields.slug = payload.slug.trim().toLowerCase();
+  if (payload.department !== undefined) updateFields.department = payload.department.trim();
+  if (payload.location !== undefined) updateFields.location = payload.location.trim();
+  if (payload.type !== undefined) updateFields.type = payload.type.trim();
+  if (payload.experience !== undefined) updateFields.experience = payload.experience.trim();
+  if (payload.compensation !== undefined) updateFields.compensation = payload.compensation.trim();
+  if (payload.description !== undefined) updateFields.description = payload.description.trim();
+  if (payload.responsibilities !== undefined) updateFields.responsibilities = parseArray(payload.responsibilities);
+  if (payload.requirements !== undefined) updateFields.requirements = parseArray(payload.requirements);
+  if (payload.tags !== undefined) updateFields.tags = parseTags(payload.tags);
+  if (payload.featured !== undefined) updateFields.featured = payload.featured;
+  if (payload.active !== undefined) updateFields.active = payload.active;
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const orConditions: Array<Record<string, unknown>> = [
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+      ];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        orConditions.push({ _id: decoded });
+      }
+
+      const updated = await Job.findOneAndUpdate(
+        { $or: orConditions },
+        { $set: updateFields },
+        { new: true }
+      ).lean();
+
+      if (updated) {
+        return { success: true, data: updated, source: "mongodb" };
+      }
+    } catch (err) {
+      console.error("[DbService] Error updating job in MongoDB:", err);
+      return { success: false, error: (err as Error).message };
+    }
+  }
+
+  const idx = inMemoryJobs.findIndex(
+    (j) =>
+      j.slug === decoded ||
+      j.id === decoded ||
+      (j as unknown as { _id?: string })._id === decoded
+  );
+  if (idx !== -1) {
+    inMemoryJobs[idx] = {
+      ...inMemoryJobs[idx],
+      ...updateFields,
+    } as JobOpening;
+    return { success: true, data: inMemoryJobs[idx], source: "fallback" };
+  }
+
+  return { success: false, error: "Job opening not found." };
+}
+
+export async function deleteJobFromDb(idOrSlug: string) {
+  const decoded = decodeURIComponent(idOrSlug).trim();
+
+  // Remove from in-memory fallback
+  inMemoryJobs = inMemoryJobs.filter(
+    (j) =>
+      j.slug !== decoded &&
+      j.id !== decoded &&
+      (j as unknown as { _id?: string })._id !== decoded
+  );
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const orConditions: Array<Record<string, unknown>> = [
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+      ];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        orConditions.push({ _id: decoded });
+      }
+
+      await Job.findOneAndDelete({ $or: orConditions });
+      return { success: true, source: "mongodb" };
+    } catch (err) {
+      console.error("[DbService] Error deleting job from MongoDB:", err);
+      return { success: false, error: (err as Error).message };
+    }
+  }
+
+  return { success: true, source: "fallback" };
 }
 
 // ==================== SEED DATABASE (DISABLED) ====================

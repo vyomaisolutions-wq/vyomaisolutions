@@ -9,7 +9,11 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search") || undefined;
 
   const result = await getBlogsFromDb({ category, search });
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+    },
+  });
 }
 
 export async function POST(req: NextRequest) {

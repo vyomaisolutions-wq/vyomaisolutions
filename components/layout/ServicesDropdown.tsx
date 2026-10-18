@@ -29,7 +29,9 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
   services,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [items, setItems] = useState<ServiceDropdownItem[]>(services || []);
+  const [items, setItems] = useState<ServiceDropdownItem[]>(
+    services && services.length > 0 ? services : servicesDropdownItems
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -38,7 +40,7 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
       try {
         const res = await fetch("/api/services");
         const json = await res.json();
-        if (json?.data && Array.isArray(json.data)) {
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: ServiceDropdownItem[] = json.data.map((s: any, idx: number) => {
             const slug = s.slug || s.id || s._id;
             return {
@@ -59,7 +61,7 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
       }
     };
 
-    if (isOpen || !services) {
+    if (isOpen) {
       fetchDynamicServices();
     }
 

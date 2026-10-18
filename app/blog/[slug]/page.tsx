@@ -49,16 +49,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
+export async function generateStaticParams() {
+  const { data: blogs } = await getBlogsFromDb();
+  const list = blogs && blogs.length > 0 ? blogs : blogPosts;
+  return list.map((b: any) => ({
+    slug: b.slug,
+  }));
+}
+
 export default async function BlogPostDetailPage({ params }: PageProps) {
+  "use cache";
   const { slug } = await params;
-  const { data: post } = await getBlogBySlugFromDb(slug);
+  const [{ data: post }, { data: allBlogs }] = await Promise.all([
+    getBlogBySlugFromDb(slug),
+    getBlogsFromDb(),
+  ]);
 
   if (!post) {
     notFound();
   }
 
-  const { data: allBlogs } = await getBlogsFromDb();
-  const recentPosts = (allBlogs as BlogPost[]).filter((p) => p.slug !== post.slug);
+  const recentPosts = ((allBlogs || []) as BlogPost[]).filter((p) => p.slug !== post.slug);
 
   return (
     <div className="pt-20 pb-16 overflow-hidden">

@@ -6,7 +6,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Clock,
   Send,
   CheckCircle2,
   AlertCircle,
@@ -15,7 +14,6 @@ import {
   Copy,
   Check,
   ExternalLink,
-  ShieldCheck,
 } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
@@ -51,6 +49,7 @@ export const ContactSection: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const handleCopy = (text: string, field: string) => {
@@ -75,11 +74,8 @@ export const ContactSection: React.FC = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errs.email = "Please enter a valid email address.";
     }
-    if (!formData.service) {
-      errs.service = "Please select a service or technology area.";
-    }
-    if (!formData.details.trim() || formData.details.length < 15) {
-      errs.details = "Please share at least a brief summary of your project (min 15 characters).";
+    if (!formData.details.trim() || formData.details.trim().length < 2) {
+      errs.details = "Please share a brief summary of your project or inquiry.";
     }
 
     setErrors(errs);
@@ -88,24 +84,35 @@ export const ContactSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!validate()) return;
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        company: formData.company.trim(),
+        service: formData.service || "General Technical Consultation",
+        details: formData.details.trim(),
+      };
+
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
+
       if (res.ok) {
         setIsSubmitted(true);
+        setSubmitError(null);
       } else {
-        // Fallback display on unexpected response
-        setIsSubmitted(true);
+        const errorData = await res.json().catch(() => null);
+        setSubmitError(errorData?.error || "Failed to submit inquiry. Please try again or email us directly.");
       }
     } catch (err) {
-      console.warn("Contact submission dispatch error, falling back:", err);
-      setIsSubmitted(true);
+      console.warn("Contact submission dispatch error:", err);
+      setSubmitError((err as Error).message || "Network error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -120,6 +127,7 @@ export const ContactSection: React.FC = () => {
       details: "",
     });
     setIsSubmitted(false);
+    setSubmitError(null);
     setErrors({});
   };
 
@@ -160,11 +168,6 @@ export const ContactSection: React.FC = () => {
                       Live Engineering Consultation Desk
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 text-[11px] font-mono shrink-0 shadow-sm">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                  <span>SLA &lt;4h</span>
                 </div>
               </div>
 
@@ -321,17 +324,7 @@ export const ContactSection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Fast Response & Security Guarantee */}
-              <div className="mt-5 pt-5 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span>Guaranteed SLA: Within 4 Hours</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>NDA &amp; Strict IP Protection</span>
-                </div>
-              </div>
+
 
               {/* Integrated Official Channels & Social Profiles */}
               <div className="mt-5 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
@@ -393,6 +386,13 @@ export const ContactSection: React.FC = () => {
                         Fill out the details below to receive architectural advice and an estimated delivery timeline.
                       </p>
                     </div>
+
+                    {submitError && (
+                      <div className="p-3.5 rounded-xl bg-rose-950/70 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                        <span>{submitError}</span>
+                      </div>
+                    )}
 
                     {/* Name & Email Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

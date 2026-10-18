@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getPageSeoFromDb } from "@/lib/db-service";
+import { getPageSeoFromDb, getServicesFromDb } from "@/lib/db-service";
 import { constructMetadata } from "@/lib/seo-helper";
 import { ServicesPageClient } from "@/components/services/ServicesPageClient";
+
 export async function generateMetadata(): Promise<Metadata> {
   "use cache";
   const seo = await getPageSeoFromDb("services");
@@ -14,6 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function ServicesPage() {
-  return <ServicesPageClient />;
+export default async function ServicesPage() {
+  "use cache";
+  const { data: services } = await getServicesFromDb();
+  const initialServices = JSON.parse(JSON.stringify(services || []));
+
+  return <ServicesPageClient initialServices={initialServices} />;
 }

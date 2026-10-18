@@ -51,11 +51,11 @@ export const FlipCard: React.FC<FlipCardProps> = ({
       >
         {/* ================= FRONT FACE (Default State) ================= */}
         <div
-          className="absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(0deg)] bg-gradient-to-br from-slate-900/95 via-slate-900/85 to-slate-950/95 border border-cyan-500/25 group-hover:border-cyan-400/60 shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(0,240,255,0.04)] group-hover:shadow-[0_15px_40px_rgba(0,0,0,0.7),0_0_30px_rgba(0,240,255,0.18)] transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between overflow-hidden"
+          className="absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(0deg)] bg-gradient-to-br from-slate-900/95 via-slate-900/85 to-slate-950/95 border border-cyan-400/50 group-hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] group-hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] transition-all duration-300 p-6 sm:p-7 flex flex-col justify-between overflow-hidden"
         >
-          {/* Top Ambient Glow & Accent Line */}
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-24 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+          {/* Top Ambient Glow & Accent Line in normal state */}
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 pointer-events-none" />
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-44 h-24 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none" />
 
           {/* Top Content: Optional Badge / Year */}
           {(year || badge) ? (

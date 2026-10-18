@@ -57,19 +57,19 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
       whileHover={{ y: -6, scale: 1.02 }}
-      className="group relative flex flex-col justify-between p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.07] via-slate-900/40 to-cyan-950/20 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 shadow-[0_15px_35px_rgba(0,0,0,0.4),0_0_25px_rgba(0,240,255,0.06),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.6),0_0_45px_rgba(0,240,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.35)] transition-all duration-300 overflow-hidden cursor-pointer min-w-0"
+      className="group relative flex flex-col justify-between p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] transition-all duration-300 overflow-hidden cursor-pointer min-w-0"
     >
-      {/* Top subtle gradient highlight on hover */}
-      <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="absolute -top-20 -right-20 w-44 h-44 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-400/25 transition-all duration-500" />
+      {/* Top ambient highlight line in normal state */}
+      <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="absolute -top-16 -right-16 w-40 h-40 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-400/35 transition-all duration-500" />
 
       <div>
-        {/* Icon & Metrics badge */}
+        {/* Icon & Metrics badge with glowing cyan in normal state */}
         <div className="flex items-center justify-between mb-5 sm:mb-6">
-          <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/70 border border-white/10 group-hover:border-cyan-400/60 group-hover:bg-cyan-950/70 group-hover:shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all duration-300">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-cyan-950/60 border border-cyan-400/50 shadow-[0_0_18px_rgba(0,240,255,0.3)] group-hover:border-cyan-300 group-hover:bg-cyan-950/85 group-hover:shadow-[0_0_26px_rgba(0,240,255,0.45)] transition-all duration-300">
             {getIcon(service.iconName)}
           </div>
-          <span className="text-[10px] sm:text-[11px] font-mono text-cyan-400/90 bg-cyan-950/50 px-2.5 py-1 rounded-full border border-cyan-800/40 font-semibold">
+          <span className="text-[10px] sm:text-[11px] font-mono text-cyan-300 bg-slate-950/90 px-2.5 py-1 rounded-full border border-cyan-500/40 font-semibold shadow-[0_0_10px_rgba(0,240,255,0.18)]">
             0{index + 1}
           </span>
         </div>

@@ -34,7 +34,11 @@ export const TestimonialsSection: React.FC = () => {
 
         {/* Testimonials Carousel Card */}
         <div className="max-w-3xl mx-auto min-w-0">
-          <div className="relative rounded-2xl sm:rounded-3xl bg-slate-900/80 border border-cyan-500/25 p-5 sm:p-7 md:p-8 shadow-2xl backdrop-blur-xl min-w-0">
+          <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] p-5 sm:p-7 md:p-8 overflow-hidden min-w-0">
+            {/* Top ambient highlight line in normal state */}
+            <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 pointer-events-none" />
+            <div className="absolute -top-14 -right-14 w-36 h-36 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none" />
+
             {/* Ambient icon */}
             <div className="absolute top-4 sm:top-5 right-4 sm:right-6 text-cyan-500/15 pointer-events-none">
               <Quote className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />

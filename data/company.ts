@@ -91,13 +91,13 @@ export const companyInfo = {
     email: "info@vyomaisolutions.com",
     phone: "+91 9598360224",
     alternatePhone: "+91 8853468637",
-    address: "JFFH+G2F, Grand Trunk Rd, near Bisrakh Mod Police Chowki, Lal Kuan, Greater Noida, Ghaziabad, Uttar Pradesh 201009",
-    mapUrl: "https://www.google.com/maps/search/?api=1&query=JFFH%2BG2F%2C+Grand+Trunk+Rd%2C+near+Bisrakh+Mod+Police+Chowki%2C+Lal+Kuan%2C+Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009",
+    address: "Greater Noida, Ghaziabad, Uttar Pradesh 201009",
+    mapUrl: "https://www.google.com/maps/search/?api=1&query=Greater+Noida%2C+Ghaziabad%2C+Uttar+Pradesh+201009",
     locations: [
       {
         city: "Greater Noida / Ghaziabad",
         country: "India",
-        address: "JFFH+G2F, Grand Trunk Rd, near Bisrakh Mod Police Chowki, Lal Kuan, Greater Noida, Ghaziabad, Uttar Pradesh 201009",
+        address: "Greater Noida, Ghaziabad, Uttar Pradesh 201009",
       },
     ],
   },

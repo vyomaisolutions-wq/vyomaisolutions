@@ -4,6 +4,7 @@ import { Blog } from "@/models/Blog";
 import { Project } from "@/models/Project";
 import { Service } from "@/models/Service";
 import { Contact } from "@/models/Contact";
+import { CareerApplication } from "@/models/CareerApplication";
 
 export async function GET() {
   const conn = await connectToDatabase();
@@ -16,20 +17,25 @@ export async function GET() {
     contacts: 0,
     newLeads: 0,
     totalViews: 0,
+    applications: 0,
+    newApplications: 0,
   };
 
   let recentLeads: unknown[] = [];
   let recentBlogs: unknown[] = [];
+  let recentApplications: unknown[] = [];
 
   if (conn) {
     try {
-      const [blogCount, projCount, servCount, contactCount, newLeadCount] =
+      const [blogCount, projCount, servCount, contactCount, newLeadCount, appCount, newAppCount] =
         await Promise.all([
           Blog.countDocuments(),
           Project.countDocuments(),
           Service.countDocuments(),
           Contact.countDocuments(),
           Contact.countDocuments({ status: "new" }),
+          CareerApplication.countDocuments(),
+          CareerApplication.countDocuments({ status: "new" }),
         ]);
 
       // Calculate total blog views
@@ -45,10 +51,13 @@ export async function GET() {
         contacts: contactCount,
         newLeads: newLeadCount,
         totalViews,
+        applications: appCount,
+        newApplications: newAppCount,
       };
 
       recentLeads = await Contact.find().sort({ createdAt: -1 }).limit(5).lean();
       recentBlogs = await Blog.find().sort({ createdAt: -1 }).limit(5).lean();
+      recentApplications = await CareerApplication.find().sort({ createdAt: -1 }).limit(5).lean();
     } catch (e) {
       console.warn("Failed fetching MongoDB stats:", e);
     }
@@ -60,5 +69,6 @@ export async function GET() {
     counts,
     recentLeads,
     recentBlogs,
+    recentApplications,
   });
 }

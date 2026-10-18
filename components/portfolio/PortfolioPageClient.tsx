@@ -16,23 +16,29 @@ import { Pagination } from "@/components/ui/Pagination";
 
 const categories = ["All", "AI & ML", "Web & Cloud", "Enterprise Systems", "Mobile"] as const;
 
-export const PortfolioPageClient: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+interface PortfolioPageClientProps {
+  initialProjects?: Project[];
+}
+
+export const PortfolioPageClient: React.FC<PortfolioPageClientProps> = ({ initialProjects }) => {
+  const [projects, setProjects] = useState<Project[]>(initialProjects || []);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
   React.useEffect(() => {
-    fetch("/api/portfolio")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data && Array.isArray(data.data)) {
-          setProjects(data.data);
-        }
-      })
-      .catch((err) => console.warn("Dynamic portfolio fetch:", err));
-  }, []);
+    if (!initialProjects || initialProjects.length === 0) {
+      fetch("/api/portfolio")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data && Array.isArray(data.data)) {
+            setProjects(data.data);
+          }
+        })
+        .catch((err) => console.warn("Dynamic portfolio fetch:", err));
+    }
+  }, [initialProjects]);
 
   const filteredProjects =
     activeCategory === "All"

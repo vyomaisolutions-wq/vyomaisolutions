@@ -5,7 +5,11 @@ import { getServicesFromDb } from "@/lib/db-service";
 
 export async function GET() {
   const result = await getServicesFromDb();
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+    },
+  });
 }
 
 export async function POST(req: NextRequest) {

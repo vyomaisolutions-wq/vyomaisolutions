@@ -16,8 +16,12 @@ import {
 import { BlogPost } from "@/data/blog";
 import { Pagination } from "@/components/ui/Pagination";
 
-export const BlogPageClient: React.FC = () => {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+interface BlogPageClientProps {
+  initialPosts?: BlogPost[];
+}
+
+export const BlogPageClient: React.FC<BlogPageClientProps> = ({ initialPosts }) => {
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -26,15 +30,17 @@ export const BlogPageClient: React.FC = () => {
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
-    fetch("/api/blog")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data && Array.isArray(data.data)) {
-          setPosts(data.data);
-        }
-      })
-      .catch((err) => console.warn("Dynamic blog fetch:", err));
-  }, []);
+    if (!initialPosts || initialPosts.length === 0) {
+      fetch("/api/blog")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data && Array.isArray(data.data)) {
+            setPosts(data.data);
+          }
+        })
+        .catch((err) => console.warn("Dynamic blog fetch:", err));
+    }
+  }, [initialPosts]);
 
   const categories = ["All", ...Array.from(new Set(posts.map((p) => p.category)))];
 
@@ -160,9 +166,12 @@ export const BlogPageClient: React.FC = () => {
                   <Link
                     key={post._id || post.slug || post.id}
                     href={`/blog/${post.slug}`}
-                    className="group flex flex-col justify-between rounded-2xl bg-slate-900/80 hover:bg-transparent border border-slate-800 hover:border-cyan-400/60 shadow-xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/10 backdrop-blur-md cursor-pointer min-w-0"
+                    className="group relative flex flex-col justify-between rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] transition-all duration-300 overflow-hidden cursor-pointer min-w-0"
                   >
-                    <div className="relative h-44 sm:h-52 w-full overflow-hidden border-b border-slate-800 p-4 sm:p-5 flex flex-col justify-between">
+                    {/* Top ambient highlight line in normal state */}
+                    <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 z-20 pointer-events-none" />
+
+                    <div className="relative h-44 sm:h-52 w-full overflow-hidden border-b border-cyan-500/20 p-4 sm:p-5 flex flex-col justify-between">
                       <Image
                         src={post.image || "/images/blog/generative-ai-arch.jpg"}
                         alt={post.title}
@@ -173,7 +182,7 @@ export const BlogPageClient: React.FC = () => {
                       />
 
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/60 pointer-events-none" />
-                      <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-2xl group-hover:bg-cyan-400/25 transition-all duration-500 pointer-events-none" />
+                      <div className="absolute -top-10 -right-10 w-36 h-36 bg-cyan-400/20 rounded-full blur-2xl group-hover:bg-cyan-400/35 transition-all duration-500 pointer-events-none" />
 
                       <div className="flex items-center justify-between gap-2 relative z-10">
                         <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-950/85 border border-cyan-400/40 text-cyan-300 backdrop-blur-md shadow-md truncate">

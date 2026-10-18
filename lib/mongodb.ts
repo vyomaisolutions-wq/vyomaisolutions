@@ -28,7 +28,9 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
   if (!cached?.promise) {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 2500, // fast timeout for seamless fallback
+      serverSelectionTimeoutMS: 3000, // fast timeout for seamless fallback
+      maxPoolSize: 10, // optimal for serverless container concurrency
+      socketTimeoutMS: 20000,
     };
 
     cached!.promise = mongoose

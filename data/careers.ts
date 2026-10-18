@@ -2,9 +2,9 @@ export interface JobOpening {
   id: string;
   slug: string;
   title: string;
-  department: "AI Research & Systems" | "Distributed Systems" | "Full-Stack Engineering" | "Product Design" | "MLOps & Security";
+  department: "AI Research & Systems" | "Distributed Systems" | "Full-Stack Engineering" | "Product Design" | "MLOps & Security" | string;
   location: string;
-  type: "Full-Time" | "Contract / Research Fellow";
+  type: "Full-Time" | "Contract / Research Fellow" | string;
   experience: string;
   compensation: string;
   description: string;
@@ -12,6 +12,7 @@ export interface JobOpening {
   requirements: string[];
   tags: string[];
   featured?: boolean;
+  active?: boolean;
 }
 
 export interface CulturePillar {

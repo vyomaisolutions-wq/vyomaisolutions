@@ -21,22 +21,28 @@ import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Pagination } from "@/components/ui/Pagination";
 
-export const ServicesPageClient: React.FC = () => {
-  const [services, setServices] = useState<any[]>([]);
+interface ServicesPageClientProps {
+  initialServices?: any[];
+}
+
+export const ServicesPageClient: React.FC<ServicesPageClientProps> = ({ initialServices }) => {
+  const [services, setServices] = useState<any[]>(initialServices || []);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 4;
 
   React.useEffect(() => {
-    fetch("/api/services")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data && Array.isArray(data.data)) {
-          setServices(data.data);
-        }
-      })
-      .catch((err) => console.warn("Dynamic services fetch:", err));
-  }, []);
+    if (!initialServices || initialServices.length === 0) {
+      fetch("/api/services")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data && Array.isArray(data.data)) {
+            setServices(data.data);
+          }
+        })
+        .catch((err) => console.warn("Dynamic services fetch:", err));
+    }
+  }, [initialServices]);
 
   const totalServices = services.length;
   const paginatedServices = services.slice(
@@ -150,12 +156,16 @@ export const ServicesPageClient: React.FC = () => {
                 <div
                   key={service.slug || service.id}
                   id={service.slug || service.id}
-                  className="scroll-mt-32 p-5 sm:p-8 lg:p-12 rounded-2xl sm:rounded-3xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/30 transition-all duration-300 min-w-0"
+                  className="group relative scroll-mt-32 p-5 sm:p-8 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] transition-all duration-300 overflow-hidden min-w-0"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+                  {/* Top ambient highlight line in normal state */}
+                  <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  <div className="absolute -top-14 -right-14 w-44 h-44 bg-cyan-400/20 rounded-full blur-3xl group-hover:bg-cyan-400/35 transition-all duration-500 pointer-events-none" />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
                     <div className={`lg:col-span-7 space-y-4 sm:space-y-5 min-w-0 ${isEven ? "" : "lg:order-2"}`}>
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 sm:p-3 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shrink-0">
+                        <div className="p-2.5 sm:p-3 rounded-2xl bg-cyan-950/60 border border-cyan-400/50 shadow-[0_0_18px_rgba(0,240,255,0.3)] text-cyan-400 shrink-0">
                           {getIcon(service.iconName)}
                         </div>
                         <span className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">

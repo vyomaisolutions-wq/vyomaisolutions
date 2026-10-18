@@ -37,7 +37,7 @@ export default function ContactPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Our principal solutions architects review every inquiry within 4 business hours to provide architectural feedback and timeline estimates.
+            Our principal solutions architects review every inquiry promptly to provide comprehensive architectural feedback and timeline estimates.
           </p>
         </div>
       </section>

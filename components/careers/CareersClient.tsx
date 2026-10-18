@@ -26,6 +26,7 @@ import { jobOpenings, JobOpening } from "@/data/careers";
 import { Button } from "@/components/ui/Button";
 
 export const CareersClient: React.FC = () => {
+  const [jobs, setJobs] = useState<JobOpening[]>(jobOpenings);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedJobId, setExpandedJobId] = useState<string | null>(jobOpenings[0]?.id || null);
@@ -33,6 +34,24 @@ export const CareersClient: React.FC = () => {
   // Application Modal State
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [selectedJobForModal, setSelectedJobForModal] = useState<JobOpening | null>(null);
+
+  // Fetch live jobs from database
+  React.useEffect(() => {
+    const fetchLiveJobs = async () => {
+      try {
+        const res = await fetch("/api/careers/jobs?activeOnly=true");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+            setJobs(data.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Live jobs fetch error, showing default positions:", err);
+      }
+    };
+    fetchLiveJobs();
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -58,12 +77,12 @@ export const CareersClient: React.FC = () => {
     "Product Design",
   ];
 
-  const filteredJobs = jobOpenings.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
     const matchesDept = selectedDepartment === "All" || job.department === selectedDepartment;
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      (job.tags && job.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase())));
     return matchesDept && matchesSearch;
   });
 
@@ -104,20 +123,23 @@ export const CareersClient: React.FC = () => {
       const payload = {
         name: formData.name,
         email: formData.email,
-        company: `Candidate: ${formData.role} (${formData.experienceYears} exp, ${formData.portfolioUrl || "No Link"})`,
-        service: `Career Application: ${formData.role}`,
-        budget: "N/A (Job Application)",
-        details: `[APPLIED FOR: ${formData.role}]\n[PHONE: ${formData.phone || "N/A"}]\n[PORTFOLIO/LINKEDIN: ${formData.portfolioUrl || "N/A"}]\n[RESUME FILE: ${formData.resumeFileName || "Uploaded in portal"}]\n\nCANDIDATE PITCH / HIGHLIGHTS:\n${formData.pitch}`,
+        phone: formData.phone || undefined,
+        role: formData.role,
+        portfolioUrl: formData.portfolioUrl,
+        experienceYears: formData.experienceYears,
+        resumeFileName: formData.resumeFileName || undefined,
+        pitch: formData.pitch,
       };
 
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/careers/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        throw new Error("Failed to submit application. Please try again or email careers@vyomai.com directly.");
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || "Failed to submit application. Please try again or email careers@vyomai.com directly.");
       }
 
       setSubmitSuccess(true);
@@ -542,8 +564,8 @@ export const CareersClient: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                           className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors min-h-[44px]"
                         >
-                          {jobOpenings.map((j) => (
-                            <option key={j.id} value={j.title}>
+                          {jobs.map((j) => (
+                            <option key={j.id || (j as unknown as { _id?: string })._id || j.slug} value={j.title}>
                               {j.title}
                             </option>
                           ))}
