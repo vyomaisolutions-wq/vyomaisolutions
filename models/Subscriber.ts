@@ -23,7 +23,7 @@ const SubscriberSchema = new Schema<ISubscriber>(
     },
     source: {
       type: String,
-      default: "footer_newsletter",
+      default: "Subscribe",
       trim: true,
     },
     status: {

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     const result = await createSubscriberInDb({
       email: rawEmail,
-      source: body.source || "footer_newsletter",
+      source: body.source || "Subscribe",
     });
 
     return NextResponse.json(result);

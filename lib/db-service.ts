@@ -11,7 +11,11 @@ import { BlogPost, blogPosts } from "@/data/blog";
 import { Project as StaticProject } from "@/data/projects";
 import { Service as StaticService } from "@/data/services";
 import { jobOpenings, JobOpening } from "@/data/careers";
-import { sendSubscriberNotification } from "./mailer";
+import {
+  sendSubscriberNotification,
+  sendContactNotification,
+  sendCareerNotification,
+} from "./mailer";
 
 // In-memory fallback stores for offline/dev operation without MongoDB (starts completely empty)
 const inMemoryContacts: Array<{
@@ -286,6 +290,17 @@ export async function createContactInDb(payload: {
       }
 
       const newContact = await Contact.create(sanitized);
+
+      // Send email alert to admin
+      sendContactNotification({
+        name: sanitized.name,
+        email: sanitized.email,
+        phone: sanitized.phone,
+        company: sanitized.company,
+        service: sanitized.service,
+        details: sanitized.details,
+      }).catch((e) => console.warn("[DbService] Contact notification trigger error:", e));
+
       return { success: true, data: newContact, source: "mongodb" };
     } catch (err: unknown) {
       const code = (err as { code?: number })?.code;
@@ -318,13 +333,27 @@ export async function createContactInDb(payload: {
     createdAt: new Date().toISOString(),
   };
   inMemoryContacts.unshift(fallbackItem);
+
+  // Send email alert to admin
+  sendContactNotification({
+    name: sanitized.name,
+    email: sanitized.email,
+    phone: sanitized.phone,
+    company: sanitized.company,
+    service: sanitized.service,
+    details: sanitized.details,
+  }).catch((e) => console.warn("[DbService] Fallback contact notification trigger error:", e));
+
   return { success: true, data: fallbackItem, source: "fallback" };
 }
 
 // ==================== NEWSLETTER SUBSCRIBER SERVICE ====================
 export async function createSubscriberInDb(payload: { email: string; source?: string }) {
   const email = payload.email.trim().toLowerCase();
-  const source = payload.source || "footer_newsletter";
+  const source =
+    payload.source && payload.source !== "footer_newsletter"
+      ? payload.source
+      : "Subscribe";
 
   const conn = await connectToDatabase();
   if (conn) {
@@ -508,6 +537,19 @@ export async function createCareerApplicationInDb(payload: {
         ...payload,
         status: "new",
       });
+
+      // Send email alert to admin
+      sendCareerNotification({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        role: payload.role,
+        experienceYears: payload.experienceYears,
+        portfolioUrl: payload.portfolioUrl,
+        resumeFileName: payload.resumeFileName,
+        pitch: payload.pitch,
+      }).catch((e) => console.warn("[DbService] Career notification trigger error:", e));
+
       return { success: true, data: app, source: "mongodb" };
     } catch (err) {
       console.warn("[DbService] Error creating career application in MongoDB:", err);
@@ -522,6 +564,19 @@ export async function createCareerApplicationInDb(payload: {
     updatedAt: new Date().toISOString(),
   };
   inMemoryCareerApplications.unshift(fallbackApp);
+
+  // Send email alert to admin
+  sendCareerNotification({
+    name: payload.name,
+    email: payload.email,
+    phone: payload.phone,
+    role: payload.role,
+    experienceYears: payload.experienceYears,
+    portfolioUrl: payload.portfolioUrl,
+    resumeFileName: payload.resumeFileName,
+    pitch: payload.pitch,
+  }).catch((e) => console.warn("[DbService] Fallback career notification trigger error:", e));
+
   return { success: true, data: fallbackApp, source: "fallback" };
 }
 

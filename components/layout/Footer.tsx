@@ -31,7 +31,7 @@ export const Footer: React.FC = () => {
         },
         body: JSON.stringify({
           email: emailToSubmit,
-          source: "footer_newsletter",
+          source: "Subscribe",
         }),
       });
 

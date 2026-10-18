@@ -224,6 +224,7 @@ export default function AdminDashboardPage() {
   const [careerStatusFilter, setCareerStatusFilter] = useState<string>("all");
   const [subscriberStatusFilter, setSubscriberStatusFilter] = useState<string>("all");
   const [isDeletingSubscriber, setIsDeletingSubscriber] = useState<string | null>(null);
+  const [isTestingEmail, setIsTestingEmail] = useState<boolean>(false);
 
   // Modal states
   const [blogModalOpen, setBlogModalOpen] = useState(false);
@@ -1222,7 +1223,7 @@ export default function AdminDashboardPage() {
     const headers = ["Email", "Source", "Status", "Subscribed At (UTC)"];
     const rows = subscribers.map((s) => [
       `"${s.email}"`,
-      `"${s.source || "footer_newsletter"}"`,
+      `"${s.source && s.source !== "footer_newsletter" ? s.source : "Subscribe"}"`,
       `"${s.status}"`,
       `"${new Date(s.createdAt).toISOString()}"`,
     ]);
@@ -1240,6 +1241,36 @@ export default function AdminDashboardPage() {
     link.click();
     document.body.removeChild(link);
     showToast(`Exported ${subscribers.length} subscribers to CSV!`, "success");
+  };
+
+  const handleSendTestEmail = async () => {
+    setIsTestingEmail(true);
+    try {
+      const res = await fetch("/api/admin/email-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipient: "vyomaisolutions@gmail.com" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(
+          `Test email sent successfully via ${data.provider || "Brevo"}!`,
+          "success"
+        );
+      } else {
+        showToast(
+          `Email dispatch warning: ${data.error || "Check Brevo credentials"}`,
+          "error"
+        );
+      }
+    } catch (err: unknown) {
+      showToast(
+        "Failed to trigger test email: " + (err as Error).message,
+        "error"
+      );
+    } finally {
+      setIsTestingEmail(false);
+    }
   };
 
   const filteredSubscribers = subscribers.filter((sub) => {
@@ -2614,6 +2645,16 @@ export default function AdminDashboardPage() {
                     <Download className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Export CSV</span>
                   </button>
+
+                  {/* Test Brevo Email Button */}
+                  <button
+                    onClick={handleSendTestEmail}
+                    disabled={isTestingEmail}
+                    className="px-3.5 py-1.5 rounded-xl bg-cyan-950/70 border border-cyan-500/40 hover:border-cyan-400 text-xs font-semibold text-cyan-300 flex items-center gap-1.5 transition-all cursor-pointer hover:bg-cyan-900/50 disabled:opacity-50"
+                  >
+                    <Mail className={`w-3.5 h-3.5 ${isTestingEmail ? "animate-pulse" : ""}`} />
+                    <span>{isTestingEmail ? "Testing..." : "Test Email"}</span>
+                  </button>
                 </div>
               </div>
 
@@ -2683,7 +2724,7 @@ export default function AdminDashboardPage() {
                           </td>
                           <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
                             <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
-                              {sub.source || "footer_newsletter"}
+                              {sub.source && sub.source !== "footer_newsletter" ? sub.source : "Subscribe"}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
