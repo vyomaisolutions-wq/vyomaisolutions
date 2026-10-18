@@ -314,18 +314,11 @@ export const Footer: React.FC = () => {
             </a>
           </div>
 
-          {/* Centered Copyright & Admin Link */}
+          {/* Centered Copyright */}
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <p className="text-[11px] sm:text-xs text-slate-500 text-center">
               &copy; 2026 VyomAI Technologies Inc. All Rights Reserved.
             </p>
-            <span className="hidden sm:inline text-slate-700">•</span>
-            <Link
-              href="/admin"
-              className="text-[11px] font-mono text-slate-500 hover:text-cyan-400 transition-colors"
-            >
-              Admin OS
-            </Link>
           </div>
 
           {/* Cyan/Blue Scroll-to-Top Button on the Right */}

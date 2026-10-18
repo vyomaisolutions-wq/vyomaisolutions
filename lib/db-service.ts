@@ -244,21 +244,57 @@ export async function createContactInDb(payload: {
 }) {
   const sanitized = {
     name: payload.name.trim(),
-    email: payload.email.trim(),
-    phone: payload.phone ? payload.phone.trim() : "",
+    email: payload.email.trim().toLowerCase(),
+    phone: payload.phone ? payload.phone.trim().replace(/\D/g, "") : "",
     company: payload.company ? payload.company.trim() : "",
     service: payload.service ? payload.service.trim() : "General Technical Consultation",
-    details: payload.details ? payload.details.trim() : "Technical inquiry submitted via website.",
+    details: payload.details && payload.details.trim() ? payload.details.trim() : "Not provided (optional)",
     status: "new" as const,
   };
 
   const conn = await connectToDatabase();
   if (conn) {
     try {
+      // Enforce unique email check in DB
+      const existingEmail = await Contact.findOne({
+        email: { $regex: new RegExp(`^${sanitized.email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+      });
+      if (existingEmail) {
+        return { success: false, error: "An inquiry with this email address has already been submitted." };
+      }
+
+      // Enforce unique phone check in DB
+      if (sanitized.phone) {
+        const existingPhone = await Contact.findOne({ phone: sanitized.phone });
+        if (existingPhone) {
+          return { success: false, error: "An inquiry with this phone number has already been registered." };
+        }
+      }
+
       const newContact = await Contact.create(sanitized);
       return { success: true, data: newContact, source: "mongodb" };
-    } catch (err) {
+    } catch (err: unknown) {
+      const code = (err as { code?: number })?.code;
+      if (code === 11000) {
+        return { success: false, error: "An inquiry with this email or phone number already exists." };
+      }
       console.error("[DbService] Error inserting contact to MongoDB:", err);
+    }
+  }
+
+  // Enforce unique email check in in-memory fallback
+  const duplicateEmail = inMemoryContacts.find(
+    (c) => c.email.toLowerCase() === sanitized.email.toLowerCase()
+  );
+  if (duplicateEmail) {
+    return { success: false, error: "An inquiry with this email address has already been submitted." };
+  }
+
+  // Enforce unique phone check in in-memory fallback
+  if (sanitized.phone) {
+    const duplicatePhone = inMemoryContacts.find((c) => c.phone === sanitized.phone);
+    if (duplicatePhone) {
+      return { success: false, error: "An inquiry with this phone number has already been registered." };
     }
   }
 

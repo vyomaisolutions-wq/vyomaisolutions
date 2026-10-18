@@ -116,19 +116,17 @@ export const ContactSection: React.FC = () => {
     }
     if (!formData.email.trim()) {
       errs.email = "Business email is required.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       errs.email = "Please enter a valid email address.";
     }
-    if (!formData.phone.trim()) {
+    const cleanPhone = formData.phone.replace(/\D/g, "");
+    if (!cleanPhone) {
       errs.phone = "Mobile / Phone number is required.";
-    } else if (!/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(formData.phone.trim())) {
-      errs.phone = "Please enter a valid mobile number (e.g. +91 98765 43210).";
+    } else if (cleanPhone.length !== 10) {
+      errs.phone = "Phone number must be exactly 10 digits.";
     }
     if (!formData.service) {
       errs.service = "Please select a service category.";
-    }
-    if (!formData.details.trim() || formData.details.trim().length < 2) {
-      errs.details = "Please share a brief summary of your project or inquiry.";
     }
 
     setErrors(errs);
@@ -142,10 +140,11 @@ export const ContactSection: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      const cleanPhone = formData.phone.replace(/\D/g, "");
       const payload = {
         name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: cleanPhone,
         company: formData.company.trim(),
         service: formData.service || "General Technical Consultation",
         details: formData.details.trim(),
@@ -232,16 +231,20 @@ export const ContactSection: React.FC = () => {
                 <div className="rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-cyan-500/40 p-4 transition-all duration-300 group/email">
                   <div className="flex items-start justify-between gap-3 min-w-0">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 group-hover/email:scale-105 group-hover/email:border-cyan-400 transition-all duration-300 shadow-[0_0_12px_rgba(6,182,212,0.15)]">
+                      <a
+                        href={`mailto:${companyInfo.contact.email}`}
+                        aria-label="Send email to VyomAI"
+                        className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 group-hover/email:scale-105 group-hover/email:border-cyan-400 transition-all duration-300 shadow-[0_0_12px_rgba(6,182,212,0.15)] cursor-pointer"
+                      >
                         <Mail className="w-5 h-5" />
-                      </div>
+                      </a>
                       <div className="min-w-0">
                         <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase block">
                           Priority Direct Inbox
                         </span>
                         <a
                           href={`mailto:${companyInfo.contact.email}`}
-                          className="text-sm sm:text-base font-bold text-white hover:text-cyan-300 transition-colors flex items-center gap-1.5 break-all mt-0.5"
+                          className="text-sm sm:text-base font-bold text-white hover:text-cyan-300 transition-colors flex items-center gap-1.5 break-all mt-0.5 cursor-pointer"
                         >
                           <span>{companyInfo.contact.email}</span>
                           <ArrowUpRight className="w-4 h-4 text-cyan-400 shrink-0 opacity-70 group-hover/email:opacity-100 group-hover/email:translate-x-0.5 group-hover/email:-translate-y-0.5 transition-all" />
@@ -268,9 +271,13 @@ export const ContactSection: React.FC = () => {
                 {/* 2. Direct Phone / Mobile Pod */}
                 <div className="rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-sky-500/40 p-4 transition-all duration-300 group/phone">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-950/80 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0 group-hover/phone:scale-105 group-hover/phone:border-sky-400 transition-all duration-300 shadow-[0_0_12px_rgba(56,189,248,0.15)]">
+                    <a
+                      href={`tel:${companyInfo.contact.phone.replace(/\s+/g, "")}`}
+                      aria-label="Call primary mobile number"
+                      className="w-10 h-10 rounded-xl bg-sky-950/80 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0 group-hover/phone:scale-105 group-hover/phone:border-sky-400 transition-all duration-300 shadow-[0_0_12px_rgba(56,189,248,0.15)] cursor-pointer"
+                    >
                       <Phone className="w-5 h-5" />
-                    </div>
+                    </a>
                     <div>
                       <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase block">
                         Direct Voice Hotline
@@ -515,16 +522,21 @@ export const ContactSection: React.FC = () => {
                           htmlFor="phone"
                           className="block text-xs font-semibold uppercase font-mono text-slate-300 mb-1.5"
                         >
-                          Mobile / Phone Number <span className="text-cyan-400">*</span>
+                          Mobile / Phone Number (10 digits) <span className="text-cyan-400">*</span>
                         </label>
                         <input
                           id="phone"
                           type="tel"
                           value={formData.phone}
-                          onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
-                          }
-                          placeholder="+91 98765 43210"
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                            setFormData({ ...formData, phone: digits });
+                            if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+                          }}
+                          maxLength={10}
+                          inputMode="numeric"
+                          pattern="[0-9]{10}"
+                          placeholder="9876543210 (10 digits)"
                           className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors min-h-[44px] ${
                             errors.phone
                               ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
@@ -598,13 +610,13 @@ export const ContactSection: React.FC = () => {
 
 
 
-                    {/* Project Details Textarea */}
+                    {/* Project Details Textarea (Optional) */}
                     <div className="min-w-0">
                       <label
                         htmlFor="details"
                         className="block text-xs font-semibold uppercase font-mono text-slate-300 mb-1.5"
                       >
-                        Project Overview &amp; Goals <span className="text-cyan-400">*</span>
+                        Project Overview &amp; Goals <span className="text-slate-500 font-normal lowercase font-sans">(optional)</span>
                       </label>
                       <textarea
                         id="details"
@@ -613,18 +625,9 @@ export const ContactSection: React.FC = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, details: e.target.value })
                         }
-                        placeholder="Briefly describe what you are looking to build, expected timelines, key data constraints, or technical hurdles..."
-                        className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors ${
-                          errors.details
-                            ? "border-rose-500 focus:ring-1 focus:ring-rose-500"
-                            : "border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
-                        }`}
+                        placeholder="Briefly describe what you are looking to build, expected timelines, key data constraints, or technical hurdles (optional)..."
+                        className="w-full px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none transition-colors"
                       />
-                      {errors.details && (
-                        <p className="text-xs text-rose-400 mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" /> {errors.details}
-                        </p>
-                      )}
                     </div>
 
                     {/* Submit Button */}

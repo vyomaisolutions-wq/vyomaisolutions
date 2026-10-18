@@ -6,7 +6,7 @@ import { EvolutionFlipCard } from "./EvolutionFlipCard";
 
 const EVOLUTION_JOURNEY_DATA = [
   {
-    year: "2021",
+    year: "2024",
     step: "01",
     phase: "PHASE 01",
     title: "Foundation & Vision",
@@ -20,7 +20,7 @@ const EVOLUTION_JOURNEY_DATA = [
     accentBar: "from-cyan-400 to-sky-500",
   },
   {
-    year: "2022",
+    year: "2025",
     step: "02",
     phase: "PHASE 02",
     title: "Corporate Legal Advisory",
@@ -34,7 +34,7 @@ const EVOLUTION_JOURNEY_DATA = [
     accentBar: "from-sky-400 to-indigo-500",
   },
   {
-    year: "2023",
+    year: "2026",
     step: "03",
     phase: "PHASE 03",
     title: "Autonomous AI Agents",
@@ -48,7 +48,7 @@ const EVOLUTION_JOURNEY_DATA = [
     accentBar: "from-blue-400 to-violet-500",
   },
   {
-    year: "2024+",
+    year: "2027+",
     step: "04",
     phase: "EXPANSION",
     title: "Global Expansion",

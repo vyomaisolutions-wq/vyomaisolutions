@@ -8,10 +8,7 @@ import {
   Calendar,
   Clock,
   ArrowRight,
-  Sparkles,
   Search,
-  Check,
-  Send,
 } from "lucide-react";
 import { BlogPost } from "@/data/blog";
 import { Pagination } from "@/components/ui/Pagination";
@@ -24,8 +21,6 @@ export const BlogPageClient: React.FC<BlogPageClientProps> = ({ initialPosts }) 
   const [posts, setPosts] = useState<BlogPost[]>(initialPosts || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
 
@@ -71,16 +66,6 @@ export const BlogPageClient: React.FC<BlogPageClientProps> = ({ initialPosts }) 
     }
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setIsSubscribed(true);
-      setTimeout(() => {
-        setIsSubscribed(false);
-        setNewsletterEmail("");
-      }, 4000);
-    }
-  };
 
   return (
     <div className="pt-16 sm:pt-20 pb-12 sm:pb-16 overflow-hidden w-full min-w-0">
@@ -246,43 +231,7 @@ export const BlogPageClient: React.FC<BlogPageClientProps> = ({ initialPosts }) 
         </div>
       </section>
 
-      {/* Newsletter Box */}
-      <section className="py-16 sm:py-20 bg-slate-950/80 border-t border-slate-900">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="p-6 sm:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-slate-900 border border-cyan-500/20 shadow-2xl min-w-0">
-            <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-cyan-400 mx-auto mb-3 sm:mb-4 animate-pulse" />
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 break-words">
-              Stay Ahead of AI Breakthroughs
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
-              Subscribe to get our quarterly engineering whitepapers, benchmark data, and model architecture deep-dives.
-            </p>
 
-            <form onSubmit={handleSubscribe} className="relative max-w-md mx-auto">
-              <input
-                type="email"
-                value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
-                placeholder="Enter your corporate email"
-                required
-                className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 pr-14 min-h-[48px]"
-              />
-              <button
-                type="submit"
-                className="absolute right-1.5 top-1.5 bottom-1.5 w-11 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors cursor-pointer flex items-center justify-center min-tap-target shrink-0"
-                aria-label="Subscribe to newsletter"
-              >
-                {isSubscribed ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-              </button>
-            </form>
-            {isSubscribed && (
-              <p className="text-xs text-cyan-300 mt-3">
-                ✓ Successfully subscribed! You will receive our next quarterly release.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
