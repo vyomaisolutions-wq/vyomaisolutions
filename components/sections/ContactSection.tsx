@@ -19,7 +19,6 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { SocialLinks } from "@/components/ui/SocialLinks";
 import { companyInfo } from "@/data/company";
-import { servicesDropdownItems } from "@/data/navigation";
 
 const SERVICE_CATEGORIES = [
   {

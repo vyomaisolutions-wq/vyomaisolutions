@@ -9,10 +9,13 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 interface ServicesSectionProps {
   initialServices?: any[];
+  limit?: number;
 }
 
-export const ServicesSection: React.FC<ServicesSectionProps> = ({ initialServices }) => {
-  const [services, setServices] = useState<any[]>(initialServices || []);
+export const ServicesSection: React.FC<ServicesSectionProps> = ({ initialServices, limit = 8 }) => {
+  const [services, setServices] = useState<any[]>(
+    initialServices ? initialServices.slice(0, limit) : []
+  );
 
   useEffect(() => {
     if (!initialServices || initialServices.length === 0) {
@@ -20,12 +23,12 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ initialService
         .then((res) => res.json())
         .then((data) => {
           if (data?.data && Array.isArray(data.data)) {
-            setServices(data.data);
+            setServices(data.data.slice(0, limit));
           }
         })
         .catch((err) => console.warn("Dynamic services fetch error:", err));
     }
-  }, [initialServices]);
+  }, [initialServices, limit]);
 
   return (
     <section id="services" className="relative py-24 sm:py-32 bg-slate-950 overflow-hidden">
@@ -66,6 +69,19 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ initialService
             ))}
           </div>
         )}
+
+        {/* View All Services Button */}
+        <div className="mt-10 sm:mt-12 text-center">
+          <Button
+            href="/services"
+            variant="outline"
+            size="md"
+            rightIcon={<ArrowRight className="w-4 h-4 shrink-0" />}
+            className="w-full sm:w-auto"
+          >
+            Explore All Capabilities &amp; Specialized Services
+          </Button>
+        </div>
 
         {/* Bottom Callout banner */}
         <div className="mt-12 sm:mt-16 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-blue-950/40 border border-cyan-500/20 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">

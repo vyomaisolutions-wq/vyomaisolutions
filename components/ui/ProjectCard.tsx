@@ -2,7 +2,6 @@
 
 import React from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { ArrowUpRight, Activity } from "lucide-react";
 import { Project } from "@/data/projects";
 
@@ -13,14 +12,10 @@ interface ProjectCardProps {
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpenModal }) => {
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.4 }}
-      whileHover={{ y: -8, scale: 1.02 }}
-      className="group relative flex flex-col justify-between rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] transition-all duration-300 overflow-hidden cursor-pointer"
+    <div
+      onClick={() => onOpenModal?.(project)}
+      className="group relative flex flex-col justify-between h-full w-full rounded-3xl bg-gradient-to-br from-white/[0.08] via-slate-900/60 to-cyan-950/30 backdrop-blur-2xl border border-cyan-400/50 hover:border-cyan-300/80 shadow-[0_20px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(0,240,255,0.22),inset_0_1px_2px_rgba(255,255,255,0.25)] hover:shadow-[0_25px_55px_rgba(0,0,0,0.7),0_0_50px_rgba(0,240,255,0.38),inset_0_1px_2px_rgba(255,255,255,0.45)] hover:-translate-y-1.5 transition-all duration-300 overflow-hidden cursor-pointer select-none"
+      style={{ willChange: "transform" }}
     >
       {/* Top ambient highlight line in normal state */}
       <div className="absolute top-0 left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300 z-20 pointer-events-none" />
@@ -90,6 +85,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpenModal }
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

@@ -1,9 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CheckCircle2, ArrowRight, Activity, ExternalLink } from "lucide-react";
+import { X, ArrowRight, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperType } from "swiper";
+import { Autoplay, FreeMode } from "swiper/modules";
+
+// Swiper core styles
+import "swiper/css";
+import "swiper/css/autoplay";
+import "swiper/css/free-mode";
+
 import { Project } from "@/data/projects";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -19,6 +28,12 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
   const [projects, setProjects] = useState<Project[]>(initialProjects || []);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const swiperRef = useRef<SwiperType | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!initialProjects || initialProjects.length === 0) {
@@ -37,6 +52,16 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
     activeCategory === "All"
       ? projects
       : projects.filter((p) => p.category === activeCategory);
+
+  // Guarantee ample slides for seamless autonomous infinite loop without blank gaps or resets
+  const slideItems = useMemo(() => {
+    if (filteredProjects.length === 0) return [];
+    let items = [...filteredProjects];
+    while (items.length < 12) {
+      items = [...items, ...filteredProjects];
+    }
+    return items;
+  }, [filteredProjects]);
 
   return (
     <section id="portfolio" className="relative py-24 sm:py-32 bg-slate-950 overflow-hidden">
@@ -65,54 +90,160 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
           description="Explore how our AI models and custom software architectures drive tangible metrics and transform mission-critical operations."
         />
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-          {categories.map((category) => {
-            const isActive = activeCategory === category;
-            return (
+        {/* Filter Bar & Swiper Autonomous Controls */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+          {/* Category Filters */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {categories.map((category) => {
+              const isActive = activeCategory === category;
+              return (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`relative px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
+                    isActive
+                      ? "text-cyan-300 font-semibold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                  }`}
+                >
+                  <span>{category}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeFilterPill"
+                      className="absolute inset-0 bg-cyan-950/80 border border-cyan-500/40 rounded-full -z-10 shadow-sm shadow-cyan-500/20"
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Autonomous Status & Manual Controls */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium shadow-sm shadow-cyan-500/10">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+              </span>
+              <span>Autonomous Flow</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
               <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`relative px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
-                  isActive
-                    ? "text-cyan-300 font-semibold"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
-                }`}
+                onClick={() => swiperRef.current?.slidePrev(700)}
+                className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/50 hover:bg-slate-800 transition-all cursor-pointer shadow-lg active:scale-95"
+                title="Previous Slide"
+                aria-label="Previous Slide"
               >
-                <span>{category}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeFilterPill"
-                    className="absolute inset-0 bg-cyan-950/80 border border-cyan-500/40 rounded-full -z-10 shadow-sm shadow-cyan-500/20"
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  />
-                )}
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            );
-          })}
+              <button
+                onClick={() => swiperRef.current?.slideNext(700)}
+                className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/50 hover:bg-slate-800 transition-all cursor-pointer shadow-lg active:scale-95"
+                title="Next Slide"
+                aria-label="Next Slide"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Projects Grid */}
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.length === 0 ? (
-              <div className="text-center py-16 text-slate-400 col-span-full w-full">
-                <p className="text-sm">Projects and case studies will appear here once published in the Admin Panel.</p>
-              </div>
-            ) : (
-              filteredProjects.map((project) => (
-                <ProjectCard
-                  key={project._id || project.slug || project.id}
-                  project={project}
-                  onOpenModal={(p) => setSelectedProject(p)}
-                />
-              ))
-            )}
-          </AnimatePresence>
-        </motion.div>
+        {/* Autonomous Swiper Slider (without static block grid) */}
+        {filteredProjects.length === 0 ? (
+          <div className="text-center py-16 text-slate-400 w-full">
+            <p className="text-sm">Projects and case studies will appear here once published in the Admin Panel.</p>
+          </div>
+        ) : !isMounted ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+            {filteredProjects.slice(0, 3).map((project) => (
+              <ProjectCard
+                key={project._id || project.slug || project.id}
+                project={project}
+                onOpenModal={(p) => setSelectedProject(p)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="relative w-full overflow-hidden px-1">
+            {/* Vignette fade edges for seamless infinite horizon flow */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-slate-950 via-slate-950/70 to-transparent z-10 pointer-events-none" />
+
+            <Swiper
+              key={activeCategory}
+              modules={[Autoplay, FreeMode]}
+              onBeforeInit={(swiper) => {
+                swiperRef.current = swiper;
+              }}
+              loop={true}
+              speed={6500}
+              autoplay={{
+                delay: 0,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: false,
+              }}
+              freeMode={{
+                enabled: true,
+                momentum: false,
+              }}
+              allowTouchMove={true}
+              grabCursor={true}
+              slidesPerView={1.15}
+              spaceBetween={20}
+              breakpoints={{
+                640: {
+                  slidesPerView: 1.6,
+                  spaceBetween: 24,
+                },
+                768: {
+                  slidesPerView: 2.2,
+                  spaceBetween: 28,
+                },
+                1024: {
+                  slidesPerView: 2.8,
+                  spaceBetween: 32,
+                },
+                1280: {
+                  slidesPerView: 3.2,
+                  spaceBetween: 32,
+                },
+              }}
+              className="portfolio-swiper !py-4"
+            >
+              {slideItems.map((project, idx) => (
+                <SwiperSlide
+                  key={`${project._id || project.slug || project.id}-${idx}`}
+                  className="!h-auto flex"
+                >
+                  <div className="w-full h-full flex flex-col pb-2">
+                    <ProjectCard
+                      project={project}
+                      onOpenModal={(p) => setSelectedProject(p)}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        )}
+
+        <style>{`
+          .portfolio-swiper .swiper-wrapper {
+            -webkit-transition-timing-function: linear !important;
+            -moz-transition-timing-function: linear !important;
+            -ms-transition-timing-function: linear !important;
+            -o-transition-timing-function: linear !important;
+            transition-timing-function: linear !important;
+            will-change: transform;
+          }
+          .portfolio-swiper .swiper-slide {
+            height: auto !important;
+            display: flex !important;
+            align-items: stretch !important;
+          }
+        `}</style>
 
         {/* Bottom CTA */}
         <div className="mt-12 sm:mt-16 text-center">

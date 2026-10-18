@@ -61,7 +61,7 @@ export async function getBlogsFromDb(query: { category?: string; search?: string
           { excerpt: { $regex: query.search, $options: "i" } },
         ];
       }
-      const blogs = await Blog.find(filter).sort({ createdAt: -1 }).lean();
+      const blogs = await Blog.find(filter).sort({ createdAt: -1, updatedAt: -1, _id: -1 }).lean();
       return { data: blogs, source: "mongodb" };
     } catch (err) {
       console.warn("[DbService] Error fetching blogs from MongoDB:", err);
@@ -79,6 +79,11 @@ export async function getBlogsFromDb(query: { category?: string; search?: string
       (b) => b.title.toLowerCase().includes(s) || b.excerpt.toLowerCase().includes(s)
     );
   }
+  filtered.sort((a, b) => {
+    const dateA = new Date((a as { createdAt?: string }).createdAt || a.publishedDate || 0).getTime();
+    const dateB = new Date((b as { createdAt?: string }).createdAt || b.publishedDate || 0).getTime();
+    return dateB - dateA;
+  });
   return { data: filtered, source: "fallback" };
 }
 
@@ -141,7 +146,7 @@ export async function getProjectsFromDb(category?: string) {
       if (category && category !== "All") {
         filter.category = category;
       }
-      const projects = await Project.find(filter).sort({ order: 1, createdAt: -1 }).lean();
+      const projects = await Project.find(filter).sort({ createdAt: -1, updatedAt: -1, _id: -1 }).lean();
       return { data: projects, source: "mongodb" };
     } catch (err) {
       console.warn("[DbService] Error fetching projects from MongoDB:", err);
@@ -152,6 +157,11 @@ export async function getProjectsFromDb(category?: string) {
   if (category && category !== "All") {
     list = list.filter((p) => p.category === category);
   }
+  list.sort((a, b) => {
+    const dateA = new Date((a as { createdAt?: string }).createdAt || 0).getTime();
+    const dateB = new Date((b as { createdAt?: string }).createdAt || 0).getTime();
+    return dateB - dateA;
+  });
   return { data: list, source: "fallback" };
 }
 
@@ -160,14 +170,20 @@ export async function getServicesFromDb() {
   const conn = await connectToDatabase();
   if (conn) {
     try {
-      const services = await Service.find({ active: true }).sort({ order: 1 }).lean();
+      const services = await Service.find({ active: true }).sort({ createdAt: -1, updatedAt: -1, _id: -1 }).lean();
       return { data: services, source: "mongodb" };
     } catch (err) {
       console.warn("[DbService] Error fetching services from MongoDB:", err);
     }
   }
 
-  return { data: inMemoryServices, source: "fallback" };
+  const list = [...inMemoryServices];
+  list.sort((a, b) => {
+    const dateA = new Date((a as { createdAt?: string }).createdAt || 0).getTime();
+    const dateB = new Date((b as { createdAt?: string }).createdAt || 0).getTime();
+    return dateB - dateA;
+  });
+  return { data: list, source: "fallback" };
 }
 
 export async function getServiceBySlugFromDb(slug: string) {
@@ -195,20 +211,25 @@ export async function getContactsFromDb() {
   let mongoContacts: unknown[] = [];
   if (conn) {
     try {
-      mongoContacts = await Contact.find({}).sort({ createdAt: -1 }).lean();
+      mongoContacts = await Contact.find({}).sort({ createdAt: -1, _id: -1 }).lean();
     } catch (err) {
       console.warn("[DbService] Error fetching contacts from MongoDB:", err);
     }
   }
 
   // Combine MongoDB contacts with in-memory contacts so inquiries are never lost
-  const combined = [...mongoContacts] as Array<{ _id: unknown }>;
+  const combined = [...mongoContacts] as Array<{ _id: unknown; createdAt?: string }>;
   const existingIds = new Set(combined.map((c) => String(c._id)));
   for (const inMem of inMemoryContacts) {
     if (!existingIds.has(String(inMem._id))) {
       combined.push(inMem);
     }
   }
+  combined.sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime();
+    const dateB = new Date(b.createdAt || 0).getTime();
+    return dateB - dateA;
+  });
 
   return { data: combined, source: conn ? "mongodb" : "fallback" };
 }

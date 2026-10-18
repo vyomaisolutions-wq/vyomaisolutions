@@ -36,9 +36,9 @@ export default async function Home() {
     getBlogsFromDb(),
   ]);
 
-  const initialServices = JSON.parse(JSON.stringify(servicesRes?.data || []));
+  const initialServices = JSON.parse(JSON.stringify(servicesRes?.data || [])).slice(0, 8);
   const initialProjects = JSON.parse(JSON.stringify(projectsRes?.data || []));
-  const initialPosts = JSON.parse(JSON.stringify(blogsRes?.data || []));
+  const initialPosts = JSON.parse(JSON.stringify(blogsRes?.data || [])).slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen">
