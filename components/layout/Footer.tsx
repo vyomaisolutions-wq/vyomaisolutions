@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Mail, Phone, MapPin, ArrowRight, Check, ChevronUp, Loader2, AlertCircle } from "lucide-react";
 import { companyInfo } from "@/data/company";
 import { FooterLink } from "./FooterLink";
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -73,6 +75,10 @@ export const Footer: React.FC = () => {
       behavior: "smooth",
     });
   };
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <footer className="relative bg-slate-950 text-slate-300 border-t border-cyan-500/15 overflow-hidden">

@@ -43,9 +43,37 @@ import {
   Users,
   Copy,
   Download,
+  ArrowLeft,
+  Star,
+  Quote,
 } from "lucide-react";
+import ProjectEditorPage from "@/components/admin/ProjectEditorPage";
+import BlogEditorPage from "@/components/admin/BlogEditorPage";
+import ServiceEditorPage from "@/components/admin/ServiceEditorPage";
+import JobEditorPage from "@/components/admin/JobEditorPage";
+import ContactDetailPage from "@/components/admin/ContactDetailPage";
+import ApplicationDetailPage from "@/components/admin/ApplicationDetailPage";
+import TestimonialEditorPage, { TestimonialFormData } from "@/components/admin/TestimonialEditorPage";
+import Pagination from "@/components/admin/Pagination";
 
-type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "contact" | "careers" | "subscribers" | "database" | "seo";
+type ActiveTab = "overview" | "blog" | "portfolio" | "services" | "testimonials" | "contact" | "careers" | "subscribers" | "database" | "seo";
+
+export interface TestimonialItem {
+  _id?: string;
+  id?: string;
+  name: string;
+  role: string;
+  company: string;
+  avatarInitials?: string;
+  quote: string;
+  rating: number;
+  metric: string;
+  isSample?: boolean;
+  active?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface SubscriberItem {
   _id: string;
@@ -208,10 +236,12 @@ export default function AdminDashboardPage() {
     applications: 0,
     newApplications: 0,
     subscribers: 0,
+    testimonials: 0,
   });
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
   const [contacts, setContacts] = useState<ContactItem[]>([]);
   const [careerApplications, setCareerApplications] = useState<CareerApplicationItem[]>([]);
   const [jobOpeningsList, setJobOpeningsList] = useState<JobOpeningItem[]>([]);
@@ -226,6 +256,29 @@ export default function AdminDashboardPage() {
   const [isDeletingSubscriber, setIsDeletingSubscriber] = useState<string | null>(null);
   const [isTestingEmail, setIsTestingEmail] = useState<boolean>(false);
 
+  // Pagination states (6 items per page)
+  const PAGE_SIZE = 6;
+  const [blogPage, setBlogPage] = useState(1);
+  const [projectPage, setProjectPage] = useState(1);
+  const [servicePage, setServicePage] = useState(1);
+  const [testimonialPage, setTestimonialPage] = useState(1);
+  const [contactPage, setContactPage] = useState(1);
+  const [applicationPage, setApplicationPage] = useState(1);
+  const [jobPage, setJobPage] = useState(1);
+  const [subscriberPage, setSubscriberPage] = useState(1);
+
+  // Reset pagination when search query or filters change
+  useEffect(() => {
+    setBlogPage(1);
+    setProjectPage(1);
+    setServicePage(1);
+    setTestimonialPage(1);
+    setContactPage(1);
+    setApplicationPage(1);
+    setJobPage(1);
+    setSubscriberPage(1);
+  }, [searchQuery, contactStatusFilter, careerStatusFilter, subscriberStatusFilter, careerSectionView]);
+
   // Modal states
   const [blogModalOpen, setBlogModalOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<BlogItem | null>(null);
@@ -233,12 +286,38 @@ export default function AdminDashboardPage() {
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [testimonialModalOpen, setTestimonialModalOpen] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState<TestimonialItem | null>(null);
   const [jobModalOpen, setJobModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobOpeningItem | null>(null);
   const [viewingContact, setViewingContact] = useState<ContactItem | null>(null);
   const [viewingApplication, setViewingApplication] = useState<CareerApplicationItem | null>(null);
   const [applicationNotesInput, setApplicationNotesInput] = useState<string>("");
   const [isUpdatingApplicationStatus, setIsUpdatingApplicationStatus] = useState<boolean>(false);
+
+  // Close all page views helper
+  const closeAllPages = () => {
+    setBlogModalOpen(false);
+    setProjectModalOpen(false);
+    setServiceModalOpen(false);
+    setTestimonialModalOpen(false);
+    setJobModalOpen(false);
+    setViewingContact(null);
+    setViewingApplication(null);
+  };
+
+  const [testimonialForm, setTestimonialForm] = useState<TestimonialFormData>({
+    name: "",
+    role: "",
+    company: "",
+    avatarInitials: "",
+    quote: "",
+    rating: 5,
+    metric: "",
+    isSample: false,
+    active: true,
+    order: 0,
+  });
 
   // Job Opening form buffer
   const [jobForm, setJobForm] = useState({
@@ -371,8 +450,17 @@ export default function AdminDashboardPage() {
   const fetchData = useCallback(async () => {
     setIsRefreshing(true);
     try {
+      const ts = Date.now();
+      const noCacheOpts: RequestInit = {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+        },
+      };
+
       // 1. Stats and DB Status
-      const statsRes = await fetch("/api/admin/stats");
+      const statsRes = await fetch(`/api/admin/stats?_t=${ts}`, noCacheOpts);
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setDbStatus(statsData.db);
@@ -380,49 +468,49 @@ export default function AdminDashboardPage() {
       }
 
       // 2. Blogs
-      const blogRes = await fetch("/api/blog");
+      const blogRes = await fetch(`/api/blog?_t=${ts}`, noCacheOpts);
       if (blogRes.ok) {
         const blogData = await blogRes.json();
         setBlogs(blogData.data || []);
       }
 
       // 3. Projects
-      const projRes = await fetch("/api/portfolio");
+      const projRes = await fetch(`/api/portfolio?_t=${ts}`, noCacheOpts);
       if (projRes.ok) {
         const projData = await projRes.json();
         setProjects(projData.data || []);
       }
 
       // 4. Services
-      const servRes = await fetch("/api/services");
+      const servRes = await fetch(`/api/services?_t=${ts}`, noCacheOpts);
       if (servRes.ok) {
         const servData = await servRes.json();
         setServices(servData.data || []);
       }
 
       // 5. Contacts
-      const contactRes = await fetch("/api/contact");
+      const contactRes = await fetch(`/api/contact?_t=${ts}`, noCacheOpts);
       if (contactRes.ok) {
         const contactData = await contactRes.json();
         setContacts(contactData.data || []);
       }
 
       // 5b. Career Applications
-      const careerRes = await fetch("/api/careers/apply");
+      const careerRes = await fetch(`/api/careers/apply?_t=${ts}`, noCacheOpts);
       if (careerRes.ok) {
         const careerData = await careerRes.json();
         setCareerApplications(careerData.data || []);
       }
 
       // 5c. Job Openings
-      const jobsRes = await fetch("/api/careers/jobs");
+      const jobsRes = await fetch(`/api/careers/jobs?_t=${ts}`, noCacheOpts);
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
         setJobOpeningsList(jobsData.data || []);
       }
 
       // 5d. Newsletter Subscribers
-      const subRes = await fetch("/api/newsletter");
+      const subRes = await fetch(`/api/newsletter?_t=${ts}`, noCacheOpts);
       if (subRes.ok) {
         const subData = await subRes.json();
         setSubscribers(subData.data || []);
@@ -431,8 +519,17 @@ export default function AdminDashboardPage() {
         }
       }
 
+      // 5e. Testimonials
+      const testiRes = await fetch(`/api/testimonials?_t=${ts}`, noCacheOpts);
+      if (testiRes.ok) {
+        const testiData = await testiRes.json();
+        const testiList = testiData.data || [];
+        setTestimonials(testiList);
+        setCounts((prev) => ({ ...prev, testimonials: testiList.length }));
+      }
+
       // 6. Page SEO
-      const seoRes = await fetch("/api/admin/seo");
+      const seoRes = await fetch(`/api/admin/seo?_t=${ts}`, noCacheOpts);
       if (seoRes.ok) {
         const seoData = await seoRes.json();
         if (seoData.data && Array.isArray(seoData.data)) {
@@ -504,6 +601,8 @@ export default function AdminDashboardPage() {
 
   // Blog CRUD
   const openNewBlogModal = () => {
+    closeAllPages();
+    setActiveTab("blog");
     setEditingBlog(null);
     setBlogForm({
       title: "",
@@ -525,6 +624,8 @@ export default function AdminDashboardPage() {
   };
 
   const openEditBlogModal = (blog: BlogItem) => {
+    closeAllPages();
+    setActiveTab("blog");
     setEditingBlog(blog);
     setBlogForm({
       title: blog.title,
@@ -601,23 +702,19 @@ export default function AdminDashboardPage() {
 
   const handleDeleteBlog = async (blog: BlogItem) => {
     if (!confirm(`Are you sure you want to delete "${blog.title}"?`)) return;
+    const id = blog._id || blog.slug || blog.id;
+    if (!id) {
+      showToast("Error: Article identifier not found.", "error");
+      return;
+    }
+
+    // 1. Optimistically update UI immediately
+    setBlogs((prev) =>
+      prev.filter((b) => b._id !== id && b.slug !== id && b.id !== id && b._id !== blog._id && b.slug !== blog.slug)
+    );
+    setCounts((prev) => ({ ...prev, blogs: Math.max(0, prev.blogs - 1) }));
+
     try {
-      const id = blog._id || blog.slug || blog.id;
-      if (!id) {
-        showToast("Error: Article identifier not found.", "error");
-        return;
-      }
-
-      // Optimistically update the UI immediately
-      setBlogs((prev) =>
-        prev.filter((b) => {
-          if (blog._id && b._id === blog._id) return false;
-          if (blog.slug && b.slug === blog.slug) return false;
-          if (blog.id && b.id === blog.id) return false;
-          return true;
-        })
-      );
-
       const res = await fetch(`/api/blog/${encodeURIComponent(id)}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
 
@@ -635,6 +732,8 @@ export default function AdminDashboardPage() {
 
   // Project CRUD
   const openNewProjectModal = () => {
+    closeAllPages();
+    setActiveTab("portfolio");
     setEditingProject(null);
     setProjectForm({
       title: "",
@@ -655,6 +754,8 @@ export default function AdminDashboardPage() {
   };
 
   const openEditProjectModal = (proj: ProjectItem) => {
+    closeAllPages();
+    setActiveTab("portfolio");
     setEditingProject(proj);
     setProjectForm({
       title: proj.title,
@@ -724,17 +825,16 @@ export default function AdminDashboardPage() {
 
   const handleDeleteProject = async (proj: ProjectItem) => {
     if (!confirm(`Delete project "${proj.title}"?`)) return;
+    const id = proj._id || proj.slug || proj.id;
+    if (!id) return;
+
+    // 1. Optimistically update UI immediately
+    setProjects((prev) =>
+      prev.filter((p) => p._id !== id && p.slug !== id && p.id !== id && p._id !== proj._id && p.slug !== proj.slug)
+    );
+    setCounts((prev) => ({ ...prev, projects: Math.max(0, prev.projects - 1) }));
+
     try {
-      const id = proj._id || proj.slug || proj.id;
-      if (!id) return;
-      setProjects((prev) =>
-        prev.filter((p) => {
-          if (proj._id && p._id === proj._id) return false;
-          if (proj.slug && p.slug === proj.slug) return false;
-          if (proj.id && p.id === proj.id) return false;
-          return true;
-        })
-      );
       const res = await fetch(`/api/portfolio/${encodeURIComponent(id)}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Project deleted successfully!");
@@ -748,6 +848,8 @@ export default function AdminDashboardPage() {
 
   // Service CRUD
   const openNewServiceModal = () => {
+    closeAllPages();
+    setActiveTab("services");
     setEditingService(null);
     setServiceForm({
       title: "",
@@ -768,6 +870,8 @@ export default function AdminDashboardPage() {
   };
 
   const openEditServiceModal = (serv: ServiceItem) => {
+    closeAllPages();
+    setActiveTab("services");
     setEditingService(serv);
     setServiceForm({
       title: serv.title,
@@ -837,17 +941,16 @@ export default function AdminDashboardPage() {
 
   const handleDeleteService = async (serv: ServiceItem) => {
     if (!confirm(`Delete service "${serv.title}"?`)) return;
+    const id = serv._id || serv.slug || serv.id;
+    if (!id) return;
+
+    // 1. Optimistically update UI immediately
+    setServices((prev) =>
+      prev.filter((s) => s._id !== id && s.slug !== id && s.id !== id && s._id !== serv._id && s.slug !== serv.slug)
+    );
+    setCounts((prev) => ({ ...prev, services: Math.max(0, prev.services - 1) }));
+
     try {
-      const id = serv._id || serv.slug || serv.id;
-      if (!id) return;
-      setServices((prev) =>
-        prev.filter((s) => {
-          if (serv._id && s._id === serv._id) return false;
-          if (serv.slug && s.slug === serv.slug) return false;
-          if (serv.id && s.id === serv.id) return false;
-          return true;
-        })
-      );
       const res = await fetch(`/api/services/${encodeURIComponent(id)}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Service deleted successfully!");
@@ -855,6 +958,118 @@ export default function AdminDashboardPage() {
       fetchData();
     } catch (err) {
       showToast("Error deleting service: " + (err as Error).message, "error");
+      fetchData();
+    }
+  };
+
+  // Testimonial Handlers
+  const openNewTestimonialModal = () => {
+    setEditingTestimonial(null);
+    setTestimonialForm({
+      name: "",
+      role: "",
+      company: "",
+      avatarInitials: "",
+      quote: "",
+      rating: 5,
+      metric: "",
+      isSample: false,
+      active: true,
+      order: 0,
+    });
+    setTestimonialModalOpen(true);
+  };
+
+  const openEditTestimonialModal = (item: TestimonialItem) => {
+    setEditingTestimonial(item);
+    setTestimonialForm({
+      name: item.name,
+      role: item.role,
+      company: item.company,
+      avatarInitials: item.avatarInitials || "",
+      quote: item.quote,
+      rating: item.rating || 5,
+      metric: item.metric,
+      isSample: !!item.isSample,
+      active: item.active !== false,
+      order: item.order || 0,
+    });
+    setTestimonialModalOpen(true);
+  };
+
+  const handleSaveTestimonial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testimonialForm.name.trim() || !testimonialForm.quote.trim() || !testimonialForm.metric.trim()) {
+      showToast("Please fill in Client Name, Quote, and Verified Outcome Metric.", "error");
+      return;
+    }
+
+    const payload = {
+      name: testimonialForm.name.trim(),
+      role: testimonialForm.role.trim() || "Technical Leader",
+      company: testimonialForm.company.trim() || "Enterprise Client",
+      avatarInitials: testimonialForm.avatarInitials.trim() || undefined,
+      quote: testimonialForm.quote.trim(),
+      rating: Number(testimonialForm.rating) || 5,
+      metric: testimonialForm.metric.trim(),
+      isSample: Boolean(testimonialForm.isSample),
+      active: Boolean(testimonialForm.active),
+      order: Number(testimonialForm.order) || 0,
+    };
+
+    try {
+      if (editingTestimonial) {
+        const id = editingTestimonial._id || editingTestimonial.id;
+        const res = await fetch(`/api/testimonials/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          showToast("Testimonial updated successfully!");
+          setTestimonialModalOpen(false);
+          fetchData();
+        } else {
+          const errData = await res.json();
+          showToast(errData.error || "Failed to update testimonial", "error");
+        }
+      } else {
+        const res = await fetch("/api/testimonials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          showToast("Testimonial published successfully!");
+          setTestimonialModalOpen(false);
+          fetchData();
+        } else {
+          const errData = await res.json();
+          showToast(errData.error || "Failed to create testimonial", "error");
+        }
+      }
+    } catch (err) {
+      showToast("Failed to save testimonial: " + (err as Error).message, "error");
+    }
+  };
+
+  const handleDeleteTestimonial = async (item: TestimonialItem) => {
+    if (!confirm(`Delete testimonial from "${item.name}"?`)) return;
+    const id = item._id || item.id;
+    if (!id) return;
+
+    // 1. Optimistically remove from state immediately (0ms delay)
+    setTestimonials((prev) => prev.filter((t) => t._id !== id && t.id !== id));
+    setCounts((prev) => ({ ...prev, testimonials: Math.max(0, prev.testimonials - 1) }));
+
+    try {
+      const res = await fetch(`/api/testimonials/${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Testimonial deleted successfully!");
+      }
+      fetchData();
+    } catch (err) {
+      showToast("Error deleting testimonial: " + (err as Error).message, "error");
       fetchData();
     }
   };
@@ -959,15 +1174,21 @@ export default function AdminDashboardPage() {
 
   const handleDeleteContact = async (id: string) => {
     if (!confirm("Permanently delete this inquiry?")) return;
+
+    // 1. Optimistically update UI immediately
+    setContacts((prev) => prev.filter((c) => c._id !== id));
+    setCounts((prev) => ({ ...prev, contacts: Math.max(0, prev.contacts - 1) }));
+    setViewingContact(null);
+
     try {
       const res = await fetch(`/api/contact/${id}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Inquiry deleted");
-        setViewingContact(null);
-        fetchData();
       }
+      fetchData();
     } catch (err) {
       showToast("Error deleting inquiry: " + (err as Error).message, "error");
+      fetchData();
     }
   };
 
@@ -1005,17 +1226,23 @@ export default function AdminDashboardPage() {
 
   const handleDeleteApplication = async (id: string) => {
     if (!confirm("Permanently delete this career application?")) return;
+
+    // 1. Optimistically update UI immediately
+    setCareerApplications((prev) => prev.filter((a) => a._id !== id));
+    setCounts((prev) => ({ ...prev, applications: Math.max(0, prev.applications - 1) }));
+    setViewingApplication(null);
+
     try {
       const res = await fetch(`/api/careers/applications/${id}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Application deleted");
-        setViewingApplication(null);
-        fetchData();
       } else {
         showToast("Failed to delete application", "error");
       }
+      fetchData();
     } catch (err) {
       showToast("Error deleting application: " + (err as Error).message, "error");
+      fetchData();
     }
   };
 
@@ -1030,6 +1257,9 @@ export default function AdminDashboardPage() {
 
   // Job Opening Handlers
   const openNewJobModal = () => {
+    closeAllPages();
+    setActiveTab("careers");
+    setCareerSectionView("jobs");
     setEditingJob(null);
     setJobForm({
       title: "",
@@ -1050,6 +1280,9 @@ export default function AdminDashboardPage() {
   };
 
   const openEditJobModal = (job: JobOpeningItem) => {
+    closeAllPages();
+    setActiveTab("careers");
+    setCareerSectionView("jobs");
     setEditingJob(job);
     setJobForm({
       title: job.title,
@@ -1119,17 +1352,25 @@ export default function AdminDashboardPage() {
 
   const handleDeleteJob = async (job: JobOpeningItem) => {
     if (!confirm(`Permanently delete job opening "${job.title}"?`)) return;
-    const targetId = job._id || job.slug;
+    const targetId = job._id || job.slug || job.id;
+    if (!targetId) return;
+
+    // 1. Optimistically update UI immediately
+    setJobOpeningsList((prev) =>
+      prev.filter((j) => j._id !== targetId && j.slug !== targetId && j.id !== targetId && j.slug !== job.slug)
+    );
+
     try {
       const res = await fetch(`/api/careers/jobs/${targetId}`, { method: "DELETE" });
       if (res.ok) {
         showToast("Job opening deleted successfully!");
-        fetchData();
       } else {
         showToast("Failed to delete job", "error");
       }
+      fetchData();
     } catch (err) {
       showToast("Error deleting job: " + (err as Error).message, "error");
+      fetchData();
     }
   };
 
@@ -1194,17 +1435,22 @@ export default function AdminDashboardPage() {
   const handleDeleteSubscriber = async (id: string, email: string) => {
     if (!confirm(`Are you sure you want to remove subscriber "${email}"?`)) return;
     setIsDeletingSubscriber(id);
+
+    // 1. Optimistically update UI immediately
+    setSubscribers((prev) => prev.filter((s) => s._id !== id));
+    setCounts((prev) => ({ ...prev, subscribers: Math.max(0, prev.subscribers - 1) }));
+
     try {
       const res = await fetch(`/api/newsletter?id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        setSubscribers((prev) => prev.filter((s) => s._id !== id));
-        setCounts((prev) => ({ ...prev, subscribers: Math.max(0, prev.subscribers - 1) }));
         showToast(`Subscriber ${email} deleted successfully.`, "success");
       } else {
         showToast("Failed to delete subscriber.", "error");
       }
+      fetchData();
     } catch (err) {
       showToast("Error deleting subscriber: " + (err as Error).message, "error");
+      fetchData();
     } finally {
       setIsDeletingSubscriber(null);
     }
@@ -1284,6 +1530,28 @@ export default function AdminDashboardPage() {
       sub.status.toLowerCase() === subscriberStatusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
+
+  const filteredTestimonials = testimonials.filter((t) => {
+    const s = searchQuery.toLowerCase().trim();
+    if (!s) return true;
+    return (
+      t.name.toLowerCase().includes(s) ||
+      t.company.toLowerCase().includes(s) ||
+      t.role.toLowerCase().includes(s) ||
+      t.quote.toLowerCase().includes(s) ||
+      t.metric.toLowerCase().includes(s)
+    );
+  });
+
+  // Paginated slices (only 6 data items per page)
+  const paginatedBlogs = filteredBlogs.slice((blogPage - 1) * PAGE_SIZE, blogPage * PAGE_SIZE);
+  const paginatedProjects = filteredProjects.slice((projectPage - 1) * PAGE_SIZE, projectPage * PAGE_SIZE);
+  const paginatedServices = filteredServices.slice((servicePage - 1) * PAGE_SIZE, servicePage * PAGE_SIZE);
+  const paginatedTestimonials = filteredTestimonials.slice((testimonialPage - 1) * PAGE_SIZE, testimonialPage * PAGE_SIZE);
+  const paginatedContacts = filteredContacts.slice((contactPage - 1) * PAGE_SIZE, contactPage * PAGE_SIZE);
+  const paginatedApplications = filteredApplications.slice((applicationPage - 1) * PAGE_SIZE, applicationPage * PAGE_SIZE);
+  const paginatedJobOpenings = filteredJobOpenings.slice((jobPage - 1) * PAGE_SIZE, jobPage * PAGE_SIZE);
+  const paginatedSubscribers = filteredSubscribers.slice((subscriberPage - 1) * PAGE_SIZE, subscriberPage * PAGE_SIZE);
 
   if (authLoading) {
     return (
@@ -1512,7 +1780,7 @@ export default function AdminDashboardPage() {
         <aside className="w-full md:w-64 shrink-0 space-y-4 sm:space-y-6 min-w-0">
           <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 backdrop-blur-md flex md:flex-col overflow-x-auto no-scrollbar gap-1.5 sm:gap-1">
             <button
-              onClick={() => { setActiveTab("overview"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("overview"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target ${
                 activeTab === "overview"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1526,7 +1794,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("blog"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("blog"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "blog"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1543,7 +1811,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("portfolio"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("portfolio"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "portfolio"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1560,7 +1828,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("services"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("services"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "services"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1577,7 +1845,24 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("contact"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("testimonials"); setSearchQuery(""); }}
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
+                activeTab === "testimonials"
+                  ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-900"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Quote className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>Client Feedback</span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                {testimonials.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { closeAllPages(); setActiveTab("contact"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "contact"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1600,7 +1885,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("careers"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("careers"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "careers"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1623,7 +1908,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("subscribers"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("subscribers"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "subscribers"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1640,7 +1925,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("database"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("database"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "database"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1659,7 +1944,7 @@ export default function AdminDashboardPage() {
             </button>
 
             <button
-              onClick={() => { setActiveTab("seo"); setSearchQuery(""); }}
+              onClick={() => { closeAllPages(); setActiveTab("seo"); setSearchQuery(""); }}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 md:w-full min-tap-target gap-2 ${
                 activeTab === "seo"
                   ? "bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-500/40 text-cyan-300 shadow-md font-bold"
@@ -1729,11 +2014,18 @@ export default function AdminDashboardPage() {
                     <Plus className="w-3.5 h-3.5 text-cyan-400" />
                     <span>New Project</span>
                   </button>
+                  <button
+                    onClick={openNewTestimonialModal}
+                    className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-400 text-xs font-semibold text-white flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>New Testimonial</span>
+                  </button>
                 </div>
               </div>
 
               {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3.5">
                 <div
                   onClick={() => setActiveTab("blog")}
                   className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
@@ -1781,6 +2073,23 @@ export default function AdminDashboardPage() {
                   <div className="text-2xl sm:text-3xl font-extrabold text-white">{services.length}</div>
                   <div className="text-[11px] text-blue-400/80 font-mono mt-1 flex items-center gap-1">
                     <span>Offerings</span>
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setActiveTab("testimonials")}
+                  className="p-4 sm:p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                      Feedback
+                    </span>
+                    <Quote className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white">{testimonials.length}</div>
+                  <div className="text-[11px] text-amber-400/80 font-mono mt-1 flex items-center gap-1">
+                    <span>Testimonials</span>
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -1857,267 +2166,474 @@ export default function AdminDashboardPage() {
 
           {/* ======================= TAB: BLOG PUBLICATIONS ======================= */}
           {activeTab === "blog" && (
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">Blog Publications</h1>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Manage technical whitepapers, research articles, and dynamic engineering publications.
-                  </p>
+            blogModalOpen ? (
+              <BlogEditorPage
+                blogForm={blogForm}
+                setBlogForm={setBlogForm}
+                isEditing={!!editingBlog}
+                editingTitle={editingBlog?.title}
+                onSave={handleSaveBlog}
+                onCancel={() => setBlogModalOpen(false)}
+                handleFileUpload={handleFileUpload}
+                uploadingImage={uploadingImage}
+                generateSlug={generateSlug}
+              />
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Blog Publications</h1>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Manage technical whitepapers, research articles, and dynamic engineering publications.
+                    </p>
+                  </div>
+                  <button
+                    onClick={openNewBlogModal}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Publish New Article</span>
+                  </button>
                 </div>
-                <button
-                  onClick={openNewBlogModal}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Publish New Article</span>
-                </button>
-              </div>
 
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search articles by title or category..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search articles by title or category..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                {/* Articles Table */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="py-3 px-4">Publication</th>
+                          <th className="py-3 px-4">Category</th>
+                          <th className="py-3 px-4">Date</th>
+                          <th className="py-3 px-4">Author</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                        {paginatedBlogs.map((b) => (
+                          <tr key={b.slug} className="hover:bg-slate-800/40 transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-800">
+                                  <Image
+                                    src={b.image || "/images/blog/generative-ai-arch.jpg"}
+                                    alt={b.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                  />
+                                </div>
+                                <div className="min-w-0 max-w-sm">
+                                  <h4 className="font-bold text-white truncate">{b.title}</h4>
+                                  <p className="text-[11px] text-slate-400 truncate mt-0.5">{b.excerpt}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 font-mono text-[11px] text-cyan-300">
+                              {b.category}
+                            </td>
+                            <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
+                              {b.publishedDate}
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-300 font-medium">
+                              {b.author?.name || "VyomAI Lead"}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Link
+                                  href={`/blog/${b.slug}`}
+                                  target="_blank"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition-colors"
+                                  title="View public post"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </Link>
+                                <button
+                                  onClick={() => openEditBlogModal(b)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                                  title="Edit"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteBlog(b)}
+                                  className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <Pagination
+                  currentPage={blogPage}
+                  totalItems={filteredBlogs.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setBlogPage}
+                  itemName="publications"
                 />
               </div>
-
-              {/* Articles Table */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
-                      <tr>
-                        <th className="py-3 px-4">Publication</th>
-                        <th className="py-3 px-4">Category</th>
-                        <th className="py-3 px-4">Date</th>
-                        <th className="py-3 px-4">Author</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {filteredBlogs.map((b) => (
-                        <tr key={b.slug} className="hover:bg-slate-800/40 transition-colors">
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-800">
-                                <Image
-                                  src={b.image || "/images/blog/generative-ai-arch.jpg"}
-                                  alt={b.title}
-                                  fill
-                                  unoptimized
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div className="min-w-0 max-w-sm">
-                                <h4 className="font-bold text-white truncate">{b.title}</h4>
-                                <p className="text-[11px] text-slate-400 truncate mt-0.5">{b.excerpt}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-cyan-300">
-                            {b.category}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
-                            {b.publishedDate}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-300 font-medium">
-                            {b.author?.name || "VyomAI Lead"}
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Link
-                                href={`/blog/${b.slug}`}
-                                target="_blank"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition-colors"
-                                title="View public post"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </Link>
-                              <button
-                                onClick={() => openEditBlogModal(b)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                                title="Edit"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteBlog(b)}
-                                className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            )
           )}
 
           {/* ======================= TAB: PORTFOLIO ======================= */}
           {activeTab === "portfolio" && (
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">Portfolio Showcases</h1>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Manage client case studies, benchmark demonstrations, and production deployments.
-                  </p>
-                </div>
-                <button
-                  onClick={openNewProjectModal}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Case Study</span>
-                </button>
-              </div>
-
-              {/* Grid of Projects */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {filteredProjects.map((p) => (
-                  <div
-                    key={p.slug || p.id}
-                    className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/40">
-                          {p.category}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {p.clientIndustry}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-white">{p.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
-                        {p.description}
-                      </p>
-                      <div className="mt-3 p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 font-mono text-[11px] text-cyan-300">
-                        {p.results}
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                      <div className="flex flex-wrap gap-1 max-w-[70%]">
-                        {p.technologies?.slice(0, 3).map((tech) => (
-                          <span
-                            key={tech}
-                            className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => openEditProjectModal(p)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProject(p)}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+            projectModalOpen ? (
+              <ProjectEditorPage
+                projectForm={projectForm}
+                setProjectForm={setProjectForm}
+                isEditing={!!editingProject}
+                editingTitle={editingProject?.title}
+                onSave={handleSaveProject}
+                onCancel={() => setProjectModalOpen(false)}
+                handleFileUpload={handleFileUpload}
+                uploadingImage={uploadingImage}
+                generateSlug={generateSlug}
+              />
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Portfolio Showcases</h1>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Manage client case studies, benchmark demonstrations, and production deployments.
+                    </p>
                   </div>
-                ))}
+                  <button
+                    onClick={openNewProjectModal}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Case Study</span>
+                  </button>
+                </div>
+
+                {/* Grid of Projects */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {paginatedProjects.map((p) => (
+                    <div
+                      key={p.slug || p.id}
+                      className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/40">
+                            {p.category}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {p.clientIndustry}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-white">{p.title}</h3>
+                        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                          {p.description}
+                        </p>
+                        <div className="mt-3 p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 font-mono text-[11px] text-cyan-300">
+                          {p.results}
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                        <div className="flex flex-wrap gap-1 max-w-[70%]">
+                          {p.technologies?.slice(0, 3).map((tech) => (
+                            <span
+                              key={tech}
+                              className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => openEditProjectModal(p)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(p)}
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={projectPage}
+                  totalItems={filteredProjects.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setProjectPage}
+                  itemName="case studies"
+                />
               </div>
-            </div>
+            )
           )}
 
           {/* ======================= TAB: SERVICES ======================= */}
           {activeTab === "services" && (
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">Services Catalog</h1>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Manage core AI capabilities, architecture offerings, and enterprise service tiers.
-                  </p>
-                </div>
-                <button
-                  onClick={openNewServiceModal}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Service</span>
-                </button>
-              </div>
-
-              {/* Grid of Services */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {filteredServices.map((s) => (
-                  <div
-                    key={s.slug || s.id}
-                    className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/40">
-                          Icon: {s.iconName}
-                        </span>
-                        <span className="text-[10px] font-mono text-emerald-400">● Active</span>
-                      </div>
-                      <h3 className="text-base font-bold text-white">{s.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
-                        {s.shortDesc}
-                      </p>
-                      <div className="mt-3 space-y-1">
-                        {s.features?.slice(0, 3).map((feat, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
-                            <Check className="w-3 h-3 text-cyan-400 shrink-0" />
-                            <span className="truncate">{feat}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                      <span className="text-[11px] font-mono text-cyan-300 truncate max-w-[70%]">
-                        {s.metrics}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => openEditServiceModal(s)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteService(s)}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+            serviceModalOpen ? (
+              <ServiceEditorPage
+                serviceForm={serviceForm}
+                setServiceForm={setServiceForm}
+                isEditing={!!editingService}
+                editingTitle={editingService?.title}
+                onSave={handleSaveService}
+                onCancel={() => setServiceModalOpen(false)}
+                handleFileUpload={handleFileUpload}
+                uploadingImage={uploadingImage}
+                generateSlug={generateSlug}
+              />
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Services Catalog</h1>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Manage core AI capabilities, architecture offerings, and enterprise service tiers.
+                    </p>
                   </div>
-                ))}
+                  <button
+                    onClick={openNewServiceModal}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Service</span>
+                  </button>
+                </div>
+
+                {/* Grid of Services */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {paginatedServices.map((s) => (
+                    <div
+                      key={s.slug || s.id}
+                      className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/40">
+                            Icon: {s.iconName}
+                          </span>
+                          <span className="text-[10px] font-mono text-emerald-400">● Active</span>
+                        </div>
+                        <h3 className="text-base font-bold text-white">{s.title}</h3>
+                        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                          {s.shortDesc}
+                        </p>
+                        <div className="mt-3 space-y-1">
+                          {s.features?.slice(0, 3).map((feat, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
+                              <Check className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <span className="truncate">{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                        <span className="text-[11px] font-mono text-cyan-300 truncate max-w-[70%]">
+                          {s.metrics}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => openEditServiceModal(s)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteService(s)}
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={servicePage}
+                  totalItems={filteredServices.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setServicePage}
+                  itemName="services"
+                />
               </div>
-            </div>
+            )
+          )}
+
+          {/* ======================= TAB: TESTIMONIALS ======================= */}
+          {activeTab === "testimonials" && (
+            testimonialModalOpen ? (
+              <TestimonialEditorPage
+                testimonialForm={testimonialForm}
+                setTestimonialForm={setTestimonialForm}
+                isEditing={!!editingTestimonial}
+                editingName={editingTestimonial?.name}
+                onSave={handleSaveTestimonial}
+                onCancel={() => setTestimonialModalOpen(false)}
+              />
+            ) : (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Client Feedback &amp; Testimonials</h1>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Manage verified client reviews, engineering outcomes, ratings, and executive testimonials.
+                    </p>
+                  </div>
+                  <button
+                    onClick={openNewTestimonialModal}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add New Testimonial</span>
+                  </button>
+                </div>
+
+                {/* Filter and Search Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div className="relative flex-1 min-w-[220px]">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Search testimonials by client, company, quote, or metric..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div className="text-xs text-slate-400 font-mono">
+                    Showing {paginatedTestimonials.length} of {filteredTestimonials.length} reviews
+                  </div>
+                </div>
+
+                {/* Testimonials List */}
+                {paginatedTestimonials.length === 0 ? (
+                  <div className="text-center py-16 rounded-2xl bg-slate-900/40 border border-slate-800 text-slate-400 space-y-3">
+                    <Quote className="w-8 h-8 mx-auto text-slate-600" />
+                    <p className="text-sm font-medium">No testimonials found matching your query.</p>
+                    <button
+                      onClick={openNewTestimonialModal}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 text-xs font-semibold hover:bg-cyan-900/60 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Create First Testimonial</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {paginatedTestimonials.map((t) => (
+                      <div
+                        key={t._id || t.id}
+                        className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3 flex flex-col justify-between group"
+                      >
+                        <div className="space-y-3">
+                          {/* Top Pill & Rating */}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-[11px] font-mono">
+                              <Sparkles className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <span className="truncate max-w-[200px]">{t.metric}</span>
+                            </div>
+                            <div className="flex items-center gap-0.5 text-cyan-400">
+                              {Array.from({ length: t.rating || 5 }).map((_, i) => (
+                                <Star key={i} className="w-3.5 h-3.5 fill-cyan-400" />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Quote Snippet */}
+                          <p className="text-xs text-slate-300 italic line-clamp-3 leading-relaxed">
+                            &ldquo;{t.quote}&rdquo;
+                          </p>
+                        </div>
+
+                        {/* Author info & Actions */}
+                        <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-slate-950 text-xs shrink-0 shadow-sm">
+                              {t.avatarInitials || (t.name ? t.name.slice(0, 2).toUpperCase() : "VO")}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-bold text-white truncate">{t.name}</h4>
+                              <p className="text-[11px] text-slate-400 truncate">
+                                {t.role} • <span className="text-cyan-300">{t.company}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => openEditTestimonialModal(t)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition-colors cursor-pointer"
+                              title="Edit Testimonial"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTestimonial(t)}
+                              className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-colors cursor-pointer"
+                              title="Delete Testimonial"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Pagination
+                  currentPage={testimonialPage}
+                  totalItems={filteredTestimonials.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setTestimonialPage}
+                  itemName="testimonials"
+                />
+              </div>
+            )
           )}
 
           {/* ======================= TAB: CONTACT INQUIRIES ======================= */}
           {activeTab === "contact" && (
+            viewingContact ? (
+              <ContactDetailPage
+                contact={viewingContact}
+                onBack={() => setViewingContact(null)}
+                onUpdateStatus={handleUpdateContactStatus}
+                onDelete={handleDeleteContact}
+              />
+            ) : (
             <div className="space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -2160,7 +2676,7 @@ export default function AdminDashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {filteredContacts.map((c) => (
+                      {paginatedContacts.map((c) => (
                         <tr
                           key={c._id}
                           className="hover:bg-slate-800/40 transition-colors cursor-pointer"
@@ -2239,11 +2755,42 @@ export default function AdminDashboardPage() {
                   </table>
                 </div>
               </div>
+
+              <Pagination
+                currentPage={contactPage}
+                totalItems={filteredContacts.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setContactPage}
+                itemName="inquiries"
+              />
             </div>
+            )
           )}
 
           {/* ======================= TAB: CAREERS & JOB POSITIONS ======================= */}
           {activeTab === "careers" && (
+            jobModalOpen ? (
+              <JobEditorPage
+                jobForm={jobForm}
+                setJobForm={setJobForm}
+                isEditing={!!editingJob}
+                editingTitle={editingJob?.title}
+                onSave={handleSaveJob}
+                onCancel={() => setJobModalOpen(false)}
+                generateSlug={generateSlug}
+              />
+            ) : viewingApplication ? (
+              <ApplicationDetailPage
+                application={viewingApplication}
+                onBack={() => setViewingApplication(null)}
+                notes={applicationNotesInput}
+                setNotes={setApplicationNotesInput}
+                onSaveNotes={handleSaveApplicationNotes}
+                isUpdatingStatus={isUpdatingApplicationStatus}
+                onUpdateStatus={handleUpdateApplicationStatus}
+                onDelete={handleDeleteApplication}
+              />
+            ) : (
             <div className="space-y-6">
               {/* Header and Sub-tab Switcher */}
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2347,7 +2894,7 @@ export default function AdminDashboardPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                          {filteredApplications.map((app) => (
+                          {paginatedApplications.map((app) => (
                             <tr
                               key={app._id}
                               className="hover:bg-slate-800/40 transition-colors cursor-pointer"
@@ -2467,6 +3014,14 @@ export default function AdminDashboardPage() {
                       </table>
                     </div>
                   </div>
+
+                  <Pagination
+                    currentPage={applicationPage}
+                    totalItems={filteredApplications.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setApplicationPage}
+                    itemName="applications"
+                  />
                 </div>
               )}
 
@@ -2487,7 +3042,7 @@ export default function AdminDashboardPage() {
 
                   {/* Jobs Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredJobOpenings.map((job) => (
+                    {paginatedJobOpenings.map((job) => (
                       <div
                         key={job.slug || job.id || (job as { _id?: string })._id}
                         className={`p-5 rounded-2xl border transition-all ${
@@ -2599,9 +3154,18 @@ export default function AdminDashboardPage() {
                       </div>
                     )}
                   </div>
+
+                  <Pagination
+                    currentPage={jobPage}
+                    totalItems={filteredJobOpenings.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setJobPage}
+                    itemName="positions"
+                  />
                 </div>
               )}
             </div>
+            )
           )}
 
           {/* ======================= TAB: NEWSLETTER SUBSCRIBERS ======================= */}
@@ -2709,7 +3273,7 @@ export default function AdminDashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {filteredSubscribers.map((sub) => (
+                      {paginatedSubscribers.map((sub) => (
                         <tr key={sub._id} className="hover:bg-slate-800/40 transition-colors">
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-2">
@@ -2789,6 +3353,14 @@ export default function AdminDashboardPage() {
                   </table>
                 </div>
               </div>
+
+              <Pagination
+                currentPage={subscriberPage}
+                totalItems={filteredSubscribers.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setSubscriberPage}
+                itemName="subscribers"
+              />
             </div>
           )}
 
@@ -3247,1328 +3819,6 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      {/* ======================= MODAL: EDIT/CREATE BLOG ======================= */}
-      {blogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white">
-                {editingBlog ? "Edit Publication" : "Create New Publication"}
-              </h3>
-              <button
-                onClick={() => setBlogModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveBlog} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Article Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={blogForm.title}
-                    onChange={(e) => {
-                      const title = e.target.value;
-                      setBlogForm((prev) => ({
-                        ...prev,
-                        title,
-                        slug: generateSlug(title),
-                      }));
-                    }}
-                    placeholder="e.g. Distributed Agentic Systems at Scale"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium flex items-center justify-between">
-                    <span>URL Slug</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Auto-Generated</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={blogForm.slug}
-                    onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value })}
-                    placeholder="auto-generated-from-title"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Category *</label>
-                <input
-                  type="text"
-                  required
-                  value={blogForm.category}
-                  onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                  placeholder="e.g. Generative AI"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Executive Excerpt (Short Summary) *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={blogForm.excerpt}
-                  onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                  placeholder="Concise 2-line executive summary of the paper..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Full Article Description / Body (For Details Page)</span>
-                  <span className="text-[10px] font-mono text-cyan-400">Separate paragraphs with double enter</span>
-                </label>
-                <textarea
-                  rows={5}
-                  value={blogForm.description}
-                  onChange={(e) => setBlogForm({ ...blogForm, description: e.target.value })}
-                  placeholder="Write the full in-depth publication paragraphs here. This content will appear on the article details page..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Featured Image</span>
-                  <span className="text-[10px] font-mono text-cyan-400">Upload File or URL Path</span>
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                    <Upload className="w-4 h-4 text-cyan-400" />
-                    <span className="font-semibold text-xs">
-                      {uploadingImage ? "Uploading..." : "Upload Image from Device"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingImage}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, "blog");
-                      }}
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    value={blogForm.image}
-                    onChange={(e) => setBlogForm({ ...blogForm, image: e.target.value })}
-                    placeholder="/images/blog/generative-ai-arch.jpg"
-                    className="flex-1 w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-                {blogForm.image && (
-                  <div className="flex items-center gap-2.5 mt-2 p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 shrink-0">
-                      <Image src={blogForm.image} alt="Preview" fill unoptimized className="object-cover" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Selected Image
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-400 truncate block mt-0.5">
-                        {blogForm.image}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Author Name</label>
-                  <input
-                    type="text"
-                    value={blogForm.authorName}
-                    onChange={(e) => setBlogForm({ ...blogForm, authorName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Author Role</label>
-                  <input
-                    type="text"
-                    value={blogForm.authorRole}
-                    onChange={(e) => setBlogForm({ ...blogForm, authorRole: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Tags (Comma-separated)</label>
-                <input
-                  type="text"
-                  value={blogForm.tags}
-                  onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })}
-                  placeholder="LLMs, Architecture, Distributed AI"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                />
-              </div>
-
-              {/* SEO & Social Meta Configuration (For Article Details Page) */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/30 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs">
-                    <Globe className="w-4 h-4" />
-                    <span>SEO &amp; OpenGraph Metadata (Article Details Page)</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500">
-                    Auto-falls back to article content if blank
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                      <span>Meta Title</span>
-                      <span className="text-[10px] font-mono text-slate-500">{(blogForm.metaTitle || blogForm.title).length} chars</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={blogForm.metaTitle}
-                      onChange={(e) => setBlogForm({ ...blogForm, metaTitle: e.target.value })}
-                      placeholder={blogForm.title || "Custom Meta Title for Google"}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium text-[11px]">Keywords (Comma-separated)</label>
-                    <input
-                      type="text"
-                      value={blogForm.keywords}
-                      onChange={(e) => setBlogForm({ ...blogForm, keywords: e.target.value })}
-                      placeholder="AI, Large Language Models, Deep Tech"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Description</span>
-                    <span className="text-[10px] font-mono text-slate-500">{(blogForm.metaDescription || blogForm.excerpt).length} chars</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={blogForm.metaDescription}
-                    onChange={(e) => setBlogForm({ ...blogForm, metaDescription: e.target.value })}
-                    placeholder={blogForm.excerpt || "Custom search snippet description..."}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs leading-relaxed"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Image (Social Preview)</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Defaults to Featured Image</span>
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <label className="flex-1 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                      <Upload className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="font-semibold text-xs">
-                        {uploadingImage ? "Uploading..." : "Upload Meta Image"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingImage}
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, "blog-meta");
-                        }}
-                      />
-                    </label>
-                    <input
-                      type="text"
-                      value={blogForm.metaImage}
-                      onChange={(e) => setBlogForm({ ...blogForm, metaImage: e.target.value })}
-                      placeholder={blogForm.image || "/images/blog/custom-og.jpg"}
-                      className="flex-1 w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                  {blogForm.metaImage && (
-                    <div className="relative w-16 h-10 rounded-lg overflow-hidden border border-slate-700 mt-1">
-                      <Image src={blogForm.metaImage} alt="Meta Preview" fill unoptimized className="object-cover" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setBlogModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20"
-                >
-                  Save Publication
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
-
-      {/* ======================= MODAL: EDIT/CREATE PROJECT ======================= */}
-      {projectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white">
-                {editingProject ? "Edit Case Study" : "Add New Case Study"}
-              </h3>
-              <button
-                onClick={() => setProjectModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProject} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Project Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={projectForm.title}
-                    onChange={(e) => {
-                      const title = e.target.value;
-                      setProjectForm((prev) => ({
-                        ...prev,
-                        title,
-                        slug: generateSlug(title),
-                      }));
-                    }}
-                    placeholder="e.g. NeuroFinance Algorithmic Engine"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium flex items-center justify-between">
-                    <span>URL Slug</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Auto-Generated</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={projectForm.slug}
-                    onChange={(e) => setProjectForm({ ...projectForm, slug: e.target.value })}
-                    placeholder="auto-generated-from-title"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Category</label>
-                  <select
-                    value={projectForm.category}
-                    onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="AI & ML">AI &amp; ML</option>
-                    <option value="Web & Cloud">Web &amp; Cloud</option>
-                    <option value="Enterprise Systems">Enterprise Systems</option>
-                    <option value="Mobile">Mobile</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Client Industry</label>
-                  <input
-                    type="text"
-                    required
-                    value={projectForm.clientIndustry}
-                    onChange={(e) => setProjectForm({ ...projectForm, clientIndustry: e.target.value })}
-                    placeholder="e.g. Quantitative FinTech"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Key Result Metrics *</label>
-                <input
-                  type="text"
-                  required
-                  value={projectForm.results}
-                  onChange={(e) => setProjectForm({ ...projectForm, results: e.target.value })}
-                  placeholder="e.g. 99.8% Prediction Accuracy • $1.2B Daily"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Project Description *</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={projectForm.description}
-                  onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
-                  placeholder="Detailed architectural summary and engineering outcome..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Showcase Image</span>
-                  <span className="text-[10px] font-mono text-cyan-400">Upload File or URL Path</span>
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                    <Upload className="w-4 h-4 text-cyan-400" />
-                    <span className="font-semibold text-xs">
-                      {uploadingImage ? "Uploading..." : "Upload Image from Device"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingImage}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, "project");
-                      }}
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    value={projectForm.image}
-                    onChange={(e) => setProjectForm({ ...projectForm, image: e.target.value })}
-                    placeholder="/images/projects/neuro-finance.jpg"
-                    className="flex-1 w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-                {projectForm.image && (
-                  <div className="flex items-center gap-2.5 mt-2 p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 shrink-0">
-                      <Image src={projectForm.image} alt="Preview" fill unoptimized className="object-cover" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Selected Image
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-400 truncate block mt-0.5">
-                        {projectForm.image}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Tech Stack (Comma-separated)</label>
-                <input
-                  type="text"
-                  value={projectForm.technologies}
-                  onChange={(e) => setProjectForm({ ...projectForm, technologies: e.target.value })}
-                  placeholder="PyTorch, Rust, Apache Kafka, Redis"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                />
-              </div>
-
-              {/* SEO & Social Meta Configuration (For Project Details Page) */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/30 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs">
-                    <Globe className="w-4 h-4" />
-                    <span>SEO &amp; OpenGraph Metadata (Project Showcase Page)</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500">
-                    Auto-falls back to project content if blank
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                      <span>Meta Title</span>
-                      <span className="text-[10px] font-mono text-slate-500">{(projectForm.metaTitle || projectForm.title).length} chars</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={projectForm.metaTitle}
-                      onChange={(e) => setProjectForm({ ...projectForm, metaTitle: e.target.value })}
-                      placeholder={projectForm.title || "Custom Meta Title for Project"}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium text-[11px]">Keywords (Comma-separated)</label>
-                    <input
-                      type="text"
-                      value={projectForm.keywords}
-                      onChange={(e) => setProjectForm({ ...projectForm, keywords: e.target.value })}
-                      placeholder="FinTech, PyTorch, Autonomous Engine"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Description</span>
-                    <span className="text-[10px] font-mono text-slate-500">{(projectForm.metaDescription || projectForm.description).length} chars</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={projectForm.metaDescription}
-                    onChange={(e) => setProjectForm({ ...projectForm, metaDescription: e.target.value })}
-                    placeholder={projectForm.description || "Custom snippet summary for search engines..."}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs leading-relaxed"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Image (Social Preview)</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Defaults to Project Image</span>
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <label className="flex-1 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                      <Upload className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="font-semibold text-xs">
-                        {uploadingImage ? "Uploading..." : "Upload Meta Image"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingImage}
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, "project-meta");
-                        }}
-                      />
-                    </label>
-                    <input
-                      type="text"
-                      value={projectForm.metaImage}
-                      onChange={(e) => setProjectForm({ ...projectForm, metaImage: e.target.value })}
-                      placeholder={projectForm.image || "/images/projects/custom-og.jpg"}
-                      className="flex-1 w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                  {projectForm.metaImage && (
-                    <div className="relative w-16 h-10 rounded-lg overflow-hidden border border-slate-700 mt-1">
-                      <Image src={projectForm.metaImage} alt="Meta Preview" fill unoptimized className="object-cover" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setProjectModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20"
-                >
-                  Save Project
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================= MODAL: EDIT/CREATE SERVICE ======================= */}
-      {serviceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white">
-                {editingService ? "Edit Service" : "Add New Service Offering"}
-              </h3>
-              <button
-                onClick={() => setServiceModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveService} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Service Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={serviceForm.title}
-                    onChange={(e) => {
-                      const title = e.target.value;
-                      setServiceForm((prev) => ({
-                        ...prev,
-                        title,
-                        slug: generateSlug(title),
-                      }));
-                    }}
-                    placeholder="e.g. Artificial Intelligence & Machine Learning"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium flex items-center justify-between">
-                    <span>URL Slug</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Auto-Generated</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={serviceForm.slug}
-                    onChange={(e) => setServiceForm({ ...serviceForm, slug: e.target.value })}
-                    placeholder="auto-generated-from-title"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Icon Key</label>
-                  <select
-                    value={serviceForm.iconName}
-                    onChange={(e) => setServiceForm({ ...serviceForm, iconName: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="Brain">Brain (AI &amp; ML)</option>
-                    <option value="Sparkles">Sparkles (Generative AI)</option>
-                    <option value="Code2">Code2 (Custom Software)</option>
-                    <option value="Globe">Globe (Web &amp; Cloud)</option>
-                    <option value="Smartphone">Smartphone (Mobile)</option>
-                    <option value="CloudCog">CloudCog (DevOps / SRE)</option>
-                    <option value="Palette">Palette (UI/UX Design)</option>
-                    <option value="Cpu">Cpu (Hardware / Embedded)</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Metrics / SLA Guarantee</label>
-                  <input
-                    type="text"
-                    value={serviceForm.metrics}
-                    onChange={(e) => setServiceForm({ ...serviceForm, metrics: e.target.value })}
-                    placeholder="e.g. 99.4% Model Precision Across Production Pipelines"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Short Summary *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={serviceForm.shortDesc}
-                  onChange={(e) => setServiceForm({ ...serviceForm, shortDesc: e.target.value })}
-                  placeholder="One sentence description of the capability..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Full Service Description / Overview (For Details Page) *</span>
-                  <span className="text-[10px] font-mono text-cyan-400">Separate paragraphs with double enter</span>
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={serviceForm.fullDesc}
-                  onChange={(e) => setServiceForm({ ...serviceForm, fullDesc: e.target.value })}
-                  placeholder="Detailed multi-paragraph description of the engineering service, methodologies, and enterprise impact..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Service Featured Image</span>
-                  <span className="text-[10px] font-mono text-cyan-400">Upload File or URL Path</span>
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                    <Upload className="w-4 h-4 text-cyan-400" />
-                    <span className="font-semibold text-xs">
-                      {uploadingImage ? "Uploading..." : "Upload Image from Device"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingImage}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file, "service");
-                      }}
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    value={serviceForm.image}
-                    onChange={(e) => setServiceForm({ ...serviceForm, image: e.target.value })}
-                    placeholder="/images/services/ai-ml.jpg"
-                    className="flex-1 w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-                {serviceForm.image && (
-                  <div className="flex items-center gap-2.5 mt-2 p-2 rounded-xl bg-slate-950 border border-slate-800">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 shrink-0">
-                      <Image src={serviceForm.image} alt="Preview" fill unoptimized className="object-cover" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Selected Image
-                      </span>
-                      <span className="text-[11px] font-mono text-slate-400 truncate block mt-0.5">
-                        {serviceForm.image}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Key Features (One per line)</label>
-                <textarea
-                  rows={3}
-                  value={serviceForm.features}
-                  onChange={(e) => setServiceForm({ ...serviceForm, features: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Technologies (Comma-separated)</label>
-                <input
-                  type="text"
-                  value={serviceForm.technologies}
-                  onChange={(e) => setServiceForm({ ...serviceForm, technologies: e.target.value })}
-                  placeholder="PyTorch, CUDA, Next.js"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                />
-              </div>
-
-              {/* SEO & Social Meta Configuration (For Service Details Page) */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/30 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs">
-                    <Globe className="w-4 h-4" />
-                    <span>SEO &amp; OpenGraph Metadata (Service Details Page)</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500">
-                    Auto-falls back to service description if blank
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                      <span>Meta Title</span>
-                      <span className="text-[10px] font-mono text-slate-500">{(serviceForm.metaTitle || serviceForm.title).length} chars</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={serviceForm.metaTitle}
-                      onChange={(e) => setServiceForm({ ...serviceForm, metaTitle: e.target.value })}
-                      placeholder={serviceForm.title || "Custom Meta Title for Service"}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-slate-300 font-medium text-[11px]">Keywords (Comma-separated)</label>
-                    <input
-                      type="text"
-                      value={serviceForm.keywords}
-                      onChange={(e) => setServiceForm({ ...serviceForm, keywords: e.target.value })}
-                      placeholder="Enterprise AI, Neural Networks, Deep Tech"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Description</span>
-                    <span className="text-[10px] font-mono text-slate-500">{(serviceForm.metaDescription || serviceForm.shortDesc).length} chars</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={serviceForm.metaDescription}
-                    onChange={(e) => setServiceForm({ ...serviceForm, metaDescription: e.target.value })}
-                    placeholder={serviceForm.shortDesc || "Custom snippet summary for search engines..."}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 text-xs leading-relaxed"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-slate-300 font-medium flex items-center justify-between text-[11px]">
-                    <span>Meta Image (Social Preview)</span>
-                    <span className="text-[10px] font-mono text-cyan-400">Defaults to Service Image</span>
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <label className="flex-1 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-cyan-500/50 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-300 cursor-pointer transition-all">
-                      <Upload className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="font-semibold text-xs">
-                        {uploadingImage ? "Uploading..." : "Upload Meta Image"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingImage}
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, "service-meta");
-                        }}
-                      />
-                    </label>
-                    <input
-                      type="text"
-                      value={serviceForm.metaImage}
-                      onChange={(e) => setServiceForm({ ...serviceForm, metaImage: e.target.value })}
-                      placeholder={serviceForm.image || "/images/services/custom-og.jpg"}
-                      className="flex-1 w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                    />
-                  </div>
-                  {serviceForm.metaImage && (
-                    <div className="relative w-16 h-10 rounded-lg overflow-hidden border border-slate-700 mt-1">
-                      <Image src={serviceForm.metaImage} alt="Meta Preview" fill unoptimized className="object-cover" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setServiceModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20"
-                >
-                  Save Service
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================= MODAL: CREATE / EDIT JOB OPENING ======================= */}
-      {jobModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div>
-                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-1">
-                  Careers &amp; Engineering Hiring
-                </span>
-                <h3 className="text-xl font-bold text-white">
-                  {editingJob ? "Edit Job Position" : "Post New Engineering Position"}
-                </h3>
-              </div>
-              <button
-                onClick={() => setJobModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveJob} className="space-y-4 pt-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Job Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={jobForm.title}
-                    onChange={(e) => {
-                      const title = e.target.value;
-                      setJobForm((prev) => ({
-                        ...prev,
-                        title,
-                        slug: editingJob ? prev.slug : generateSlug(title),
-                      }));
-                    }}
-                    placeholder="e.g. Lead Distributed Systems Architect"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">URL Slug *</label>
-                  <input
-                    type="text"
-                    required
-                    value={jobForm.slug}
-                    onChange={(e) => setJobForm({ ...jobForm, slug: generateSlug(e.target.value) })}
-                    placeholder="lead-distributed-systems-architect"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Department *</label>
-                  <select
-                    value={jobForm.department}
-                    onChange={(e) => setJobForm({ ...jobForm, department: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="AI Research & Systems">AI Research & Systems</option>
-                    <option value="Distributed Systems">Distributed Systems</option>
-                    <option value="Full-Stack Engineering">Full-Stack Engineering</option>
-                    <option value="MLOps & Security">MLOps & Security</option>
-                    <option value="Product Design">Product Design</option>
-                    <option value="Core Engineering">Core Engineering</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Location</label>
-                  <input
-                    type="text"
-                    value={jobForm.location}
-                    onChange={(e) => setJobForm({ ...jobForm, location: e.target.value })}
-                    placeholder="e.g. Remote (Global) / Bangalore"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Employment Type</label>
-                  <select
-                    value={jobForm.type}
-                    onChange={(e) => setJobForm({ ...jobForm, type: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Contract / Research Fellow">Contract / Research Fellow</option>
-                    <option value="Part-Time">Part-Time</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Experience Required</label>
-                  <input
-                    type="text"
-                    value={jobForm.experience}
-                    onChange={(e) => setJobForm({ ...jobForm, experience: e.target.value })}
-                    placeholder="e.g. 5+ Years"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-slate-300 font-medium">Compensation Package</label>
-                  <input
-                    type="text"
-                    value={jobForm.compensation}
-                    onChange={(e) => setJobForm({ ...jobForm, compensation: e.target.value })}
-                    placeholder="e.g. $140,000 – $200,000 + Top Equity"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Short Role Summary / Overview *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={jobForm.description}
-                  onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
-                  placeholder="High-level overview of the mission, core challenges, and the architectural focus..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Key Responsibilities</span>
-                  <span className="text-[10px] font-mono text-cyan-400">One bullet point per line</span>
-                </label>
-                <textarea
-                  rows={4}
-                  value={jobForm.responsibilities}
-                  onChange={(e) => setJobForm({ ...jobForm, responsibilities: e.target.value })}
-                  placeholder="Architect multi-tenant RAG pipelines and private foundation model serving clusters&#10;Design formal guardrail engines that enforce schema validation&#10;Collaborate directly with enterprise client CTOs"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-sans leading-relaxed text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium flex items-center justify-between">
-                  <span>Core Requirements</span>
-                  <span className="text-[10px] font-mono text-cyan-400">One bullet point per line</span>
-                </label>
-                <textarea
-                  rows={4}
-                  value={jobForm.requirements}
-                  onChange={(e) => setJobForm({ ...jobForm, requirements: e.target.value })}
-                  placeholder="5+ years in production systems engineering and applied AI&#10;Deep experience with CUDA, vLLM, TensorRT-LLM&#10;Strong background in distributed training benchmarks"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-sans leading-relaxed text-xs"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-slate-300 font-medium">Technology Tags (Comma-separated)</label>
-                <input
-                  type="text"
-                  value={jobForm.tags}
-                  onChange={(e) => setJobForm({ ...jobForm, tags: e.target.value })}
-                  placeholder="PyTorch, CUDA, vLLM, Python, Next.js"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-400 font-mono text-[11px]"
-                />
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300 font-medium">
-                  <input
-                    type="checkbox"
-                    checked={jobForm.active}
-                    onChange={(e) => setJobForm({ ...jobForm, active: e.target.checked })}
-                    className="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-800"
-                  />
-                  <span>Publish and show immediately on /careers page</span>
-                </label>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setJobModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
-                >
-                  {editingJob ? "Save Changes" : "Publish Job Opening"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================= MODAL: VIEW INQUIRY DETAILS ======================= */}
-      {viewingContact && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div>
-                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-1">
-                  Inbound Consultation Request
-                </span>
-                <h3 className="text-lg font-bold text-white">{viewingContact.name}</h3>
-              </div>
-              <button
-                onClick={() => setViewingContact(null)}
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 font-mono text-[11px]">
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Email</span>
-                  <a
-                    href={`mailto:${viewingContact.email}`}
-                    className="text-cyan-400 hover:underline flex items-center gap-1"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span className="truncate">{viewingContact.email}</span>
-                  </a>
-                </div>
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Company</span>
-                  <span className="text-slate-200">{viewingContact.company || "Not provided"}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Mobile / Phone</span>
-                  {viewingContact.phone ? (
-                    <a
-                      href={`tel:${viewingContact.phone.replace(/\s+/g, "")}`}
-                      className="text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 font-semibold"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>{viewingContact.phone}</span>
-                    </a>
-                  ) : (
-                    <span className="text-slate-500 italic">Not provided</span>
-                  )}
-                </div>
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Service Requested</span>
-                  <span className="text-cyan-300 font-semibold">{viewingContact.service}</span>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-slate-400 font-mono text-[11px] block">Project Brief &amp; Inquiry:</span>
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 text-xs leading-relaxed whitespace-pre-wrap">
-                  {viewingContact.details}
-                </div>
-              </div>
-
-              {/* Status Update Actions */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-mono text-[11px] block">Update Status:</span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleUpdateContactStatus(viewingContact._id, "reviewed")}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingContact.status === "reviewed"
-                        ? "bg-cyan-950 border-cyan-500 text-cyan-300"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Mark Reviewed
-                  </button>
-                  <button
-                    onClick={() => handleUpdateContactStatus(viewingContact._id, "contacted")}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingContact.status === "contacted"
-                        ? "bg-emerald-950 border-emerald-500 text-emerald-300"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Mark Contacted
-                  </button>
-                  <button
-                    onClick={() => handleUpdateContactStatus(viewingContact._id, "archived")}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingContact.status === "archived"
-                        ? "bg-slate-800 border-slate-600 text-slate-300"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Archive
-                  </button>
-                  <button
-                    onClick={() => handleDeleteContact(viewingContact._id)}
-                    className="px-3 py-1.5 rounded-xl font-mono text-[11px] bg-red-950/40 border border-red-900/60 text-red-400 hover:bg-red-900/40 transition-colors ml-auto cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================= CAREER APPLICATION DETAILS MODAL ======================= */}
-      {viewingApplication && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div>
-                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-1">
-                  Candidate Job Application
-                </span>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span>{viewingApplication.name}</span>
-                  <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300">
-                    {viewingApplication.role}
-                  </span>
-                </h3>
-              </div>
-              <button
-                onClick={() => setViewingApplication(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              {/* Profile Details Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 font-mono text-[11px]">
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Email Address</span>
-                  <a
-                    href={`mailto:${viewingApplication.email}`}
-                    className="text-cyan-400 hover:underline flex items-center gap-1.5"
-                  >
-                    <Mail className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{viewingApplication.email}</span>
-                  </a>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Phone Number</span>
-                  {viewingApplication.phone ? (
-                    <a
-                      href={`tel:${viewingApplication.phone}`}
-                      className="text-slate-200 hover:text-cyan-300 flex items-center gap-1.5"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{viewingApplication.phone}</span>
-                    </a>
-                  ) : (
-                    <span className="text-slate-500">Not provided</span>
-                  )}
-                </div>
-
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Experience Level</span>
-                  <span className="text-slate-200 font-semibold">{viewingApplication.experienceYears || "3-5 Years"}</span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Resume / CV Attached</span>
-                  <span className="text-cyan-300 flex items-center gap-1.5">
-                    <Paperclip className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{viewingApplication.resumeFileName || "Uploaded in portal"}</span>
-                  </span>
-                </div>
-
-                {viewingApplication.portfolioUrl && (
-                  <div className="sm:col-span-2 pt-1 border-t border-slate-800/60">
-                    <span className="text-slate-500 block mb-1">Portfolio / Profile Link</span>
-                    <a
-                      href={viewingApplication.portfolioUrl.startsWith("http") ? viewingApplication.portfolioUrl : `https://${viewingApplication.portfolioUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:text-cyan-200 text-xs font-mono transition-colors"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                      <span className="break-all">{viewingApplication.portfolioUrl}</span>
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              {/* Technical Pitch */}
-              <div className="space-y-1.5">
-                <span className="text-slate-400 font-mono text-[11px] block">
-                  Technical Pitch &amp; Systems Highlights:
-                </span>
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 text-xs leading-relaxed whitespace-pre-wrap max-h-56 overflow-y-auto font-sans">
-                  {viewingApplication.pitch || "No pitch statement provided by candidate."}
-                </div>
-              </div>
-
-              {/* Admin Evaluation Notes */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 font-mono text-[11px] block">
-                    Internal Hiring / Interview Notes:
-                  </span>
-                  <button
-                    onClick={handleSaveApplicationNotes}
-                    disabled={isUpdatingApplicationStatus}
-                    className="px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30 text-[10px] font-mono transition-colors cursor-pointer"
-                  >
-                    Save Notes
-                  </button>
-                </div>
-                <textarea
-                  rows={2}
-                  value={applicationNotesInput}
-                  onChange={(e) => setApplicationNotesInput(e.target.value)}
-                  placeholder="e.g. Cleared round 1 technical screen, impressive distributed training experience..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 resize-none font-sans"
-                />
-              </div>
-
-              {/* Pipeline Status Actions */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-mono text-[11px] block">Hiring Pipeline Stage:</span>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <button
-                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "reviewed", applicationNotesInput)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingApplication.status === "reviewed"
-                        ? "bg-sky-950 border-sky-400 text-sky-300 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Mark Reviewed
-                  </button>
-                  <button
-                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "shortlisted", applicationNotesInput)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingApplication.status === "shortlisted"
-                        ? "bg-emerald-950 border-emerald-400 text-emerald-300 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Shortlist
-                  </button>
-                  <button
-                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "contacted", applicationNotesInput)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingApplication.status === "contacted"
-                        ? "bg-purple-950 border-purple-400 text-purple-300 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Contacted
-                  </button>
-                  <button
-                    onClick={() => handleUpdateApplicationStatus(viewingApplication._id, "rejected", applicationNotesInput)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] border transition-colors cursor-pointer ${
-                      viewingApplication.status === "rejected"
-                        ? "bg-red-950 border-red-500 text-red-300 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    Reject
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteApplication(viewingApplication._id)}
-                    className="px-3 py-1.5 rounded-xl font-mono text-[11px] bg-red-950/40 border border-red-900/60 text-red-400 hover:bg-red-900/40 transition-colors ml-auto cursor-pointer"
-                  >
-                    Delete Application
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }

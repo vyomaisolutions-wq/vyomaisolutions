@@ -26,7 +26,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     let isMounted = true;
     const fetchServices = async () => {
       try {
-        const res = await fetch("/api/services");
+        const res = await fetch(`/api/services?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
         const json = await res.json();
         if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: ServiceDropdownItem[] = json.data.map((s: any, idx: number) => {

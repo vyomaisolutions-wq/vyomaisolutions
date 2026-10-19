@@ -6,14 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, Activity, ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
-import { Autoplay, FreeMode } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
 
 // Swiper core styles
 import "swiper/css";
+import "swiper/css/navigation";
 import "swiper/css/autoplay";
-import "swiper/css/free-mode";
 
-import { Project } from "@/data/projects";
+import { Project, portfolioProjects } from "@/data/projects";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
@@ -25,10 +25,13 @@ interface PortfolioSectionProps {
 }
 
 export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProjects }) => {
-  const [projects, setProjects] = useState<Project[]>(initialProjects || []);
+  const [projects, setProjects] = useState<Project[]>(
+    initialProjects && initialProjects.length > 0 ? initialProjects : portfolioProjects
+  );
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isAutoplayActive, setIsAutoplayActive] = useState(true);
   const swiperRef = useRef<SwiperType | null>(null);
 
   useEffect(() => {
@@ -37,10 +40,10 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
 
   useEffect(() => {
     if (!initialProjects || initialProjects.length === 0) {
-      fetch("/api/portfolio")
+      fetch("/api/portfolio?_t=" + Date.now())
         .then((res) => res.json())
         .then((data) => {
-          if (data?.data && Array.isArray(data.data)) {
+          if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
             setProjects(data.data);
           }
         })
@@ -48,20 +51,47 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
     }
   }, [initialProjects]);
 
-  const filteredProjects =
-    activeCategory === "All"
-      ? projects
-      : projects.filter((p) => p.category === activeCategory);
-
-  // Guarantee ample slides for seamless autonomous infinite loop without blank gaps or resets
-  const slideItems = useMemo(() => {
-    if (filteredProjects.length === 0) return [];
-    let items = [...filteredProjects];
-    while (items.length < 12) {
-      items = [...items, ...filteredProjects];
+  // Combine custom DB projects with static portfolio case studies so all categories always have slides
+  const allProjects = useMemo(() => {
+    const list = [...projects];
+    const existingKeys = new Set(
+      list.map((p) => p.slug || p.id || (p as any)._id).filter(Boolean)
+    );
+    for (const sample of portfolioProjects) {
+      if (!existingKeys.has(sample.id) && !existingKeys.has(sample.slug)) {
+        list.push(sample);
+      }
     }
-    return items;
-  }, [filteredProjects]);
+    return list;
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    if (activeCategory === "All") return allProjects;
+    return allProjects.filter((p) => p.category === activeCategory);
+  }, [allProjects, activeCategory]);
+
+  const handlePrev = () => {
+    if (swiperRef.current) {
+      swiperRef.current.slidePrev();
+    }
+  };
+
+  const handleNext = () => {
+    if (swiperRef.current) {
+      swiperRef.current.slideNext();
+    }
+  };
+
+  const toggleAutoplay = () => {
+    if (!swiperRef.current) return;
+    if (isAutoplayActive) {
+      swiperRef.current.autoplay?.stop();
+      setIsAutoplayActive(false);
+    } else {
+      swiperRef.current.autoplay?.start();
+      setIsAutoplayActive(true);
+    }
+  };
 
   return (
     <section id="portfolio" className="relative py-24 sm:py-32 bg-slate-950 overflow-hidden">
@@ -121,17 +151,29 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
 
           {/* Autonomous Status & Manual Controls */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium shadow-sm shadow-cyan-500/10">
+            <button
+              onClick={toggleAutoplay}
+              type="button"
+              className={`hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-mono font-medium transition-all cursor-pointer ${
+                isAutoplayActive
+                  ? "bg-cyan-950/80 border-cyan-500/30 text-cyan-400 shadow-sm shadow-cyan-500/10 hover:border-cyan-400/50"
+                  : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
+              }`}
+              title={isAutoplayActive ? "Click to Pause Auto-Flow" : "Click to Resume Auto-Flow"}
+            >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                {isAutoplayActive && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                )}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${isAutoplayActive ? "bg-cyan-400" : "bg-slate-500"}`}></span>
               </span>
-              <span>Autonomous Flow</span>
-            </div>
+              <span>{isAutoplayActive ? "Autonomous Flow" : "Flow Paused"}</span>
+            </button>
 
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => swiperRef.current?.slidePrev(700)}
+                onClick={handlePrev}
+                type="button"
                 className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/50 hover:bg-slate-800 transition-all cursor-pointer shadow-lg active:scale-95"
                 title="Previous Slide"
                 aria-label="Previous Slide"
@@ -139,7 +181,8 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
-                onClick={() => swiperRef.current?.slideNext(700)}
+                onClick={handleNext}
+                type="button"
                 className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/50 hover:bg-slate-800 transition-all cursor-pointer shadow-lg active:scale-95"
                 title="Next Slide"
                 aria-label="Next Slide"
@@ -150,7 +193,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
           </div>
         </div>
 
-        {/* Autonomous Swiper Slider (without static block grid) */}
+        {/* Autonomous Swiper Slider */}
         {filteredProjects.length === 0 ? (
           <div className="text-center py-16 text-slate-400 w-full">
             <p className="text-sm">Projects and case studies will appear here once published in the Admin Panel.</p>
@@ -167,26 +210,22 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
           </div>
         ) : (
           <div className="relative w-full overflow-hidden px-1">
-            {/* Vignette fade edges for seamless infinite horizon flow */}
+            {/* Vignette fade edges for cinematic look */}
             <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent z-10 pointer-events-none" />
             <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-slate-950 via-slate-950/70 to-transparent z-10 pointer-events-none" />
 
             <Swiper
               key={activeCategory}
-              modules={[Autoplay, FreeMode]}
-              onBeforeInit={(swiper) => {
+              modules={[Autoplay, Navigation]}
+              onSwiper={(swiper) => {
                 swiperRef.current = swiper;
               }}
-              loop={true}
-              speed={6500}
+              loop={filteredProjects.length >= 4}
+              speed={600}
               autoplay={{
-                delay: 0,
+                delay: 3500,
                 disableOnInteraction: false,
-                pauseOnMouseEnter: false,
-              }}
-              freeMode={{
-                enabled: true,
-                momentum: false,
+                pauseOnMouseEnter: true,
               }}
               allowTouchMove={true}
               grabCursor={true}
@@ -212,9 +251,9 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
               }}
               className="portfolio-swiper !py-4"
             >
-              {slideItems.map((project, idx) => (
+              {filteredProjects.map((project, idx) => (
                 <SwiperSlide
-                  key={`${project._id || project.slug || project.id}-${idx}`}
+                  key={project._id || project.slug || project.id || `proj-${idx}`}
                   className="!h-auto flex"
                 >
                   <div className="w-full h-full flex flex-col pb-2">
@@ -230,14 +269,6 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({ initialProje
         )}
 
         <style>{`
-          .portfolio-swiper .swiper-wrapper {
-            -webkit-transition-timing-function: linear !important;
-            -moz-transition-timing-function: linear !important;
-            -ms-transition-timing-function: linear !important;
-            -o-transition-timing-function: linear !important;
-            transition-timing-function: linear !important;
-            will-change: transform;
-          }
           .portfolio-swiper .swiper-slide {
             height: auto !important;
             display: flex !important;

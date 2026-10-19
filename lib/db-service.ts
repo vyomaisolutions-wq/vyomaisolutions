@@ -7,10 +7,12 @@ import { CareerApplication, ICareerApplication } from "@/models/CareerApplicatio
 import { Job, IJob } from "@/models/Job";
 import { PageSeo, IPageSeo } from "@/models/PageSeo";
 import { Subscriber, ISubscriber } from "@/models/Subscriber";
+import { Testimonial as TestimonialModel, ITestimonial } from "@/models/Testimonial";
 import { BlogPost, blogPosts } from "@/data/blog";
-import { Project as StaticProject } from "@/data/projects";
+import { Project as StaticProject, portfolioProjects } from "@/data/projects";
 import { Service as StaticService } from "@/data/services";
 import { jobOpenings, JobOpening } from "@/data/careers";
+import { sampleTestimonials, Testimonial as StaticTestimonial } from "@/data/testimonials";
 import {
   sendSubscriberNotification,
   sendContactNotification,
@@ -61,6 +63,7 @@ let inMemoryBlogs: BlogPost[] = [];
 let inMemoryProjects: StaticProject[] = [];
 let inMemoryServices: StaticService[] = [];
 let inMemoryJobs: JobOpening[] = [...jobOpenings];
+let inMemoryTestimonials: StaticTestimonial[] = [...sampleTestimonials];
 
 // ==================== BLOG SERVICE ====================
 export async function getBlogsFromDb(query: { category?: string; search?: string } = {}) {
@@ -171,7 +174,7 @@ export async function getProjectsFromDb(category?: string) {
     }
   }
 
-  let list = [...inMemoryProjects];
+  let list = inMemoryProjects.length > 0 ? [...inMemoryProjects] : [...portfolioProjects];
   if (category && category !== "All") {
     list = list.filter((p) => p.category === category);
   }
@@ -1142,6 +1145,172 @@ export async function upsertPageSeoInDb(
 
   return { success: true, data: DEFAULT_PAGE_SEO[normId], source: "fallback" };
 }
+
+// ==================== TESTIMONIAL SERVICE ====================
+export async function getTestimonialsFromDb(query: { activeOnly?: boolean; search?: string } = {}) {
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const filter: Record<string, unknown> = {};
+      if (query.activeOnly) {
+        filter.active = true;
+      }
+      if (query.search) {
+        filter.$or = [
+          { name: { $regex: query.search, $options: "i" } },
+          { company: { $regex: query.search, $options: "i" } },
+          { role: { $regex: query.search, $options: "i" } },
+          { quote: { $regex: query.search, $options: "i" } },
+          { metric: { $regex: query.search, $options: "i" } },
+        ];
+      }
+      const testimonials = await TestimonialModel.find(filter)
+        .sort({ order: 1, createdAt: -1, _id: -1 })
+        .lean();
+
+      if (testimonials && testimonials.length > 0) {
+        return { data: testimonials, source: "mongodb" };
+      }
+    } catch (err) {
+      console.warn("[DbService] Error fetching testimonials from MongoDB:", err);
+    }
+  }
+
+  // Fallback to in-memory / sample testimonials
+  let list = [...inMemoryTestimonials];
+  if (query.activeOnly) {
+    list = list.filter((t) => t.active !== false);
+  }
+  if (query.search) {
+    const s = query.search.toLowerCase();
+    list = list.filter(
+      (t) =>
+        t.name.toLowerCase().includes(s) ||
+        t.company.toLowerCase().includes(s) ||
+        t.role.toLowerCase().includes(s) ||
+        t.quote.toLowerCase().includes(s) ||
+        t.metric.toLowerCase().includes(s)
+    );
+  }
+  return { data: list, source: "fallback" };
+}
+
+export async function createTestimonialInDb(payload: {
+  name: string;
+  role: string;
+  company: string;
+  quote: string;
+  rating?: number;
+  metric: string;
+  avatarInitials?: string;
+  isSample?: boolean;
+  active?: boolean;
+  order?: number;
+}) {
+  let initials = payload.avatarInitials?.trim();
+  if (!initials && payload.name) {
+    const parts = payload.name.trim().split(/\s+/).filter(Boolean);
+    const cleanParts = parts.filter((p) => !/^(dr\.?|mr\.?|mrs\.?|ms\.?|prof\.?)$/i.test(p));
+    const target = cleanParts.length >= 2 ? cleanParts : parts;
+    initials = (target[0][0] + (target.length > 1 ? target[target.length - 1][0] : "")).toUpperCase();
+  }
+
+  const doc = {
+    name: payload.name.trim(),
+    role: payload.role.trim(),
+    company: payload.company.trim(),
+    avatarInitials: initials || "VO",
+    quote: payload.quote.trim(),
+    rating: payload.rating !== undefined ? Math.max(1, Math.min(5, Number(payload.rating))) : 5,
+    metric: payload.metric.trim(),
+    isSample: payload.isSample ?? false,
+    active: payload.active !== undefined ? payload.active : true,
+    order: payload.order || 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const created = await TestimonialModel.create(doc);
+      return { success: true, data: created, source: "mongodb" };
+    } catch (err) {
+      console.error("[DbService] Error creating testimonial in MongoDB:", err);
+    }
+  }
+
+  const inMemDoc: StaticTestimonial = {
+    _id: "testi-" + Date.now(),
+    id: "testi-" + Date.now(),
+    ...doc,
+  };
+  inMemoryTestimonials.unshift(inMemDoc);
+  return { success: true, data: inMemDoc, source: "fallback" };
+}
+
+export async function updateTestimonialInDb(id: string, payload: Partial<StaticTestimonial>) {
+  const decoded = decodeURIComponent(id).trim();
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const orConditions: Array<Record<string, unknown>> = [];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        orConditions.push({ _id: decoded });
+      }
+      orConditions.push({ _id: decoded }, { id: decoded });
+
+      const updated = await TestimonialModel.findOneAndUpdate(
+        { $or: orConditions },
+        { ...payload, updatedAt: new Date() },
+        { new: true }
+      ).lean();
+      if (updated) {
+        return { success: true, data: updated, source: "mongodb" };
+      }
+    } catch (err) {
+      console.error("[DbService] Error updating testimonial in MongoDB:", err);
+    }
+  }
+
+  const idx = inMemoryTestimonials.findIndex((t) => t._id === decoded || t.id === decoded);
+  if (idx !== -1) {
+    inMemoryTestimonials[idx] = {
+      ...inMemoryTestimonials[idx],
+      ...payload,
+      updatedAt: new Date().toISOString(),
+    };
+    return { success: true, data: inMemoryTestimonials[idx], source: "fallback" };
+  }
+
+  return { success: false, error: "Testimonial not found" };
+}
+
+export async function deleteTestimonialFromDb(id: string) {
+  const decoded = decodeURIComponent(id).trim();
+
+  // Optimistic in-memory removal
+  inMemoryTestimonials = inMemoryTestimonials.filter((t) => t._id !== decoded && t.id !== decoded);
+
+  const conn = await connectToDatabase();
+  if (conn) {
+    try {
+      const orConditions: Array<Record<string, unknown>> = [];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        orConditions.push({ _id: decoded });
+      }
+      orConditions.push({ _id: decoded }, { id: decoded });
+
+      const deleted = await TestimonialModel.findOneAndDelete({ $or: orConditions });
+      return { success: true, deleted: !!deleted, source: "mongodb" };
+    } catch (err) {
+      console.warn("[DbService] Error deleting testimonial from MongoDB:", err);
+    }
+  }
+
+  return { success: true, deleted: true, source: "fallback" };
+}
+
 
 
 

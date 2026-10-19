@@ -1,13 +1,18 @@
 export interface Testimonial {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   role: string;
   company: string;
-  avatarInitials: string;
+  avatarInitials?: string;
   quote: string;
   rating: number;
   metric: string;
-  isSample: boolean;
+  isSample?: boolean;
+  active?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const sampleTestimonials: Testimonial[] = [

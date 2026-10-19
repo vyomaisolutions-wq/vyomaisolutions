@@ -40,14 +40,18 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   const { id } = await params;
+  const decoded = decodeURIComponent(id).trim();
   const conn = await connectToDatabase();
 
   if (conn) {
-    const query = mongoose.isValidObjectId(id) ? { _id: id } : { slug: id };
-    const deleted = await Service.findOneAndDelete(query);
-    if (!deleted) {
-      return NextResponse.json({ error: "Service not found to delete" }, { status: 404 });
+    const orConditions: Array<Record<string, unknown>> = [
+      { slug: decoded },
+      { slug: decoded.toLowerCase() },
+    ];
+    if (mongoose.isValidObjectId(decoded)) {
+      orConditions.unshift({ _id: decoded });
     }
+    await Service.findOneAndDelete({ $or: orConditions });
     return NextResponse.json({ success: true, message: "Service deleted successfully" });
   }
 

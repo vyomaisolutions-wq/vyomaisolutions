@@ -7,7 +7,7 @@ export async function GET() {
   const result = await getServicesFromDb();
   return NextResponse.json(result, {
     headers: {
-      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
     },
   });
 }

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const result = await getBlogsFromDb({ category, search });
   return NextResponse.json(result, {
     headers: {
-      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
     },
   });
 }

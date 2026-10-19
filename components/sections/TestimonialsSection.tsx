@@ -1,23 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, Quote, Sparkles } from "lucide-react";
-import { sampleTestimonials } from "@/data/testimonials";
+import { sampleTestimonials, Testimonial } from "@/data/testimonials";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
-export const TestimonialsSection: React.FC = () => {
+interface TestimonialsSectionProps {
+  initialTestimonials?: Testimonial[];
+}
+
+export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ initialTestimonials }) => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(
+    initialTestimonials && initialTestimonials.length > 0 ? initialTestimonials : sampleTestimonials
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  useEffect(() => {
+    fetch("/api/testimonials?_t=" + Date.now(), { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          setTestimonials(json.data);
+        }
+      })
+      .catch((err) => console.warn("Dynamic testimonials fetch error:", err));
+  }, []);
+
+  const total = testimonials.length > 0 ? testimonials.length : 1;
+  const safeIndex = currentIndex >= testimonials.length ? 0 : currentIndex;
+
   const prev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? sampleTestimonials.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? total - 1 : prev - 1));
   };
 
   const next = () => {
-    setCurrentIndex((prev) => (prev === sampleTestimonials.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === total - 1 ? 0 : prev + 1));
   };
 
-  const current = sampleTestimonials[currentIndex];
+  const current = testimonials[safeIndex] || sampleTestimonials[0];
+
+  const initials = current.avatarInitials || (current.name ? current.name.slice(0, 2).toUpperCase() : "VO");
 
   return (
     <section id="testimonials" className="relative py-16 sm:py-24 lg:py-32 bg-slate-950 overflow-hidden scroll-mt-20">
@@ -26,10 +49,10 @@ export const TestimonialsSection: React.FC = () => {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          badge="Sample Client Showcase"
+          badge="Client Testimonials & Feedback"
           title="What Technical Leaders Say About"
           gradientText="Our Engineering Standards"
-          description="A demonstration of client feedback patterns and verified architectural results. (Clearly labeled as sample enterprise feedback)"
+          description="Verified client feedback patterns and architectural outcomes delivered across enterprise deployments."
         />
 
         {/* Testimonials Carousel Card */}
@@ -46,7 +69,7 @@ export const TestimonialsSection: React.FC = () => {
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={current.id}
+                key={current._id || current.id || safeIndex}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
@@ -61,7 +84,7 @@ export const TestimonialsSection: React.FC = () => {
 
                 {/* Rating stars */}
                 <div className="flex items-center gap-1 text-cyan-400">
-                  {Array.from({ length: current.rating }).map((_, i) => (
+                  {Array.from({ length: current.rating || 5 }).map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-cyan-400" />
                   ))}
                 </div>
@@ -71,11 +94,11 @@ export const TestimonialsSection: React.FC = () => {
                   &ldquo;{current.quote}&rdquo;
                 </blockquote>
 
-                {/* Author Info & Sample disclaimer */}
+                {/* Author Info & disclaimer */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 sm:pt-5 border-t border-slate-800/80 min-w-0">
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-slate-950 shadow-md shadow-cyan-500/20 text-sm shrink-0">
-                      {current.avatarInitials}
+                      {initials}
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-sm sm:text-base font-bold text-white truncate">{current.name}</h4>
@@ -85,8 +108,8 @@ export const TestimonialsSection: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider self-start sm:self-center shrink-0">
-                    Demonstration Content Only
+                  <span className="text-[10px] font-mono text-cyan-500/80 uppercase tracking-wider self-start sm:self-center shrink-0">
+                    {current.isSample ? "Demonstration Content Only" : "Verified Client Feedback"}
                   </span>
                 </div>
               </motion.div>
@@ -102,7 +125,7 @@ export const TestimonialsSection: React.FC = () => {
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <span className="text-xs font-mono text-slate-400 select-none">
-                0{currentIndex + 1} / 0{sampleTestimonials.length}
+                {String(safeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
               </span>
               <button
                 onClick={next}

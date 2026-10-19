@@ -38,6 +38,10 @@ export const Navbar: React.FC = () => {
     }, 200);
   };
 
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <>
       <header
@@ -52,7 +56,7 @@ export const Navbar: React.FC = () => {
             {/* Left side: Company Logo */}
             <Link
               href="/"
-              className="group flex items-center gap-2.5 sm:gap-3.5 select-none focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-lg p-1 shrink-0"
+              className="group flex items-center gap-2.5 sm:gap-3.5 select-none outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0 rounded-lg p-1 shrink-0"
               aria-label="VyomAI Homepage"
             >
               <div className="relative w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 shadow-md shadow-cyan-500/25 group-hover:shadow-cyan-400/50 group-hover:scale-105 transition-all duration-300 shrink-0">

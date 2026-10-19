@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const result = await getProjectsFromDb(category);
   return NextResponse.json(result, {
     headers: {
-      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
     },
   });
 }

@@ -38,7 +38,10 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
 
     const fetchDynamicServices = async () => {
       try {
-        const res = await fetch("/api/services");
+        const res = await fetch(`/api/services?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
         const json = await res.json();
         if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
           const mapped: ServiceDropdownItem[] = json.data.map((s: any, idx: number) => {
@@ -168,41 +171,59 @@ export const ServicesDropdown: React.FC<ServicesDropdownProps> = ({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 max-h-[65vh] overflow-y-auto pr-1">
-              {items.map((item, idx) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2, delay: idx * 0.025 }}
-                >
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className="group flex items-start gap-3 p-3 rounded-xl hover:bg-slate-900/90 border border-transparent hover:border-cyan-500/25 transition-all duration-200"
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                {items.slice(0, 8).map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.025 }}
                   >
-                    <div className="p-2 rounded-lg bg-cyan-950/50 border border-cyan-500/20 group-hover:border-cyan-400/50 group-hover:bg-cyan-900/40 text-cyan-400 shrink-0 mt-0.5 transition-colors">
-                      {getIcon(item.iconName)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors truncate">
-                          {item.title}
-                        </span>
-                        {item.badge && (
-                          <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                            {item.badge}
-                          </span>
-                        )}
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className="group flex items-start gap-3 p-3 rounded-xl hover:bg-slate-900/90 border border-transparent hover:border-cyan-500/25 transition-all duration-200"
+                    >
+                      <div className="p-2 rounded-lg bg-cyan-950/50 border border-cyan-500/20 group-hover:border-cyan-400/50 group-hover:bg-cyan-900/40 text-cyan-400 shrink-0 mt-0.5 transition-colors">
+                        {getIcon(item.iconName)}
                       </div>
-                      <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-1 mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors truncate">
+                            {item.title}
+                          </span>
+                          {item.badge && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-1 mt-0.5">
+                          {item.description}
+                        </p>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              {items.length > 8 && (
+                <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between px-2">
+                  <span className="text-xs text-slate-400">
+                    Showing 8 of {items.length} services (4 per side)
+                  </span>
+                  <Link
+                    href="/services"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors group"
+                  >
+                    <span>View All ({items.length}) Services</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </Link>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
       )}

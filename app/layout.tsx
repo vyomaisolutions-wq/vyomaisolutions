@@ -89,7 +89,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark scroll-smooth h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden w-full">
-        <Suspense fallback={<div className="h-20 w-full" />}>
+        <Suspense fallback={null}>
           <Navbar />
         </Suspense>
         <main className="flex-1 w-full min-w-0 overflow-x-hidden">{children}</main>
